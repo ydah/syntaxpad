@@ -298,6 +298,31 @@ main {
   stroke-width: 3;
 }
 
+.dependency-node.kind-terminal rect {
+  fill: var(--vscode-badge-background);
+  stroke-dasharray: 2 2;
+}
+
+.dependency-node.kind-terminal text {
+  fill: var(--vscode-badge-foreground);
+}
+
+.dependency-node.degree-medium rect {
+  stroke-width: 2;
+}
+
+.dependency-node.degree-high rect {
+  stroke-width: 3;
+}
+
+.dependency-node[data-distance="0"] rect {
+  fill: var(--vscode-list-activeSelectionBackground);
+}
+
+.dependency-node[data-distance="1"] rect {
+  fill: var(--vscode-list-inactiveSelectionBackground);
+}
+
 .dependency-node.status-undefined rect {
   stroke-dasharray: 5 3;
 }

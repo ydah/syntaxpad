@@ -46,6 +46,7 @@ const nonce = (): string => randomBytes(18).toString("base64url");
 export class SyntaxPadPanel implements vscode.Disposable {
   private static current: SyntaxPadPanel | undefined;
   private static latestConflicts: VersionedConflictReport | undefined;
+  private static metrics: vscode.OutputChannel | undefined;
 
   private cache: CachedGrammar | undefined;
   private readonly disposables: vscode.Disposable[] = [];
@@ -132,6 +133,10 @@ export class SyntaxPadPanel implements vscode.Disposable {
     await SyntaxPadPanel.current?.render();
   }
 
+  public static setMetricsChannel(channel: vscode.OutputChannel): void {
+    SyntaxPadPanel.metrics = channel;
+  }
+
   public dispose(): void {
     if (SyntaxPadPanel.current === this) {
       SyntaxPadPanel.current = undefined;
@@ -158,17 +163,28 @@ export class SyntaxPadPanel implements vscode.Disposable {
     await this.panel.webview.postMessage(message);
   }
 
+  private recordMetric(kind: "cursor-highlight" | "diagram-navigation", durationMs: number): void {
+    const targetMs = 50;
+    const hardLimitMs = 100;
+    const result =
+      durationMs <= targetMs ? "target" : durationMs <= hardLimitMs ? "within limit" : "over limit";
+    SyntaxPadPanel.metrics?.appendLine(
+      `${new Date().toISOString()} ${kind}: ${durationMs.toFixed(1)} ms (${result}; target ${String(targetMs)} ms, limit ${String(hardLimitMs)} ms)`,
+    );
+  }
+
   private followSelection(editor: vscode.TextEditor): void {
+    const sentAt = Date.now();
     const offset = editor.document.offsetAt(editor.selection.active);
     const selectedRule = this.cache?.document
       ? findRuleAtOffset(this.cache.document, offset)
       : undefined;
     if (selectedRule !== undefined && selectedRule.name !== this.selectedRuleName) {
       this.selectedRuleName = selectedRule.name;
-      void this.render();
+      void this.render(sentAt);
       return;
     }
-    void this.post({ offset, type: "selection" });
+    void this.post({ offset, sentAt, type: "selection" });
   }
 
   private async update(force = false): Promise<void> {
@@ -202,7 +218,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
     await this.post({ offset, type: "selection" });
   }
 
-  private async render(): Promise<void> {
+  private async render(sentAt?: number): Promise<void> {
     if (this.cache === undefined) {
       return;
     }
@@ -233,7 +249,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
       return;
     }
     this.selectedRuleName = model.selectedRuleName;
-    await this.post({ model, type: "model" });
+    await this.post({ model, ...(sentAt === undefined ? {} : { sentAt }), type: "model" });
   }
 
   private async navigate(message: Extract<ViewMessage, { type: "navigate" }>): Promise<void> {
@@ -264,6 +280,9 @@ export class SyntaxPadPanel implements vscode.Disposable {
     );
     editor.selection = new vscode.Selection(range.start, range.end);
     editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+    if (message.startedAt !== undefined) {
+      this.recordMetric("diagram-navigation", Math.max(0, Date.now() - message.startedAt));
+    }
   }
 
   private async handleMessage(input: unknown): Promise<void> {
@@ -304,6 +323,9 @@ export class SyntaxPadPanel implements vscode.Disposable {
           to: message.to,
           uri: this.cache?.uri ?? "",
         });
+        return;
+      case "performance":
+        this.recordMetric(message.kind, message.durationMs);
         return;
       case "runConflicts":
         await vscode.commands.executeCommand(`syntaxpad.${message.type}`);

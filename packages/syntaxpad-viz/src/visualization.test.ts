@@ -145,6 +145,7 @@ unused: TOKEN ;
       expect.arrayContaining(["root", "branch", "missing"]),
     );
     expect(view.nodes.find((node) => node.id === "missing")?.statuses).toContain("undefined");
+    expect(view.nodes.find((node) => node.id === "missing")?.kind).toBe("undefined");
     expect(view.nodes.some((node) => node.id === "unused")).toBe(false);
   });
 
@@ -170,5 +171,21 @@ unused: TOKEN ;
 
     expect(view.nodes.find((node) => node.id === "branch")?.statuses).toContain("conflict");
     expect(renderDependencySvg(view).svg).toContain("status-conflict");
+  });
+
+  it("expands a terminal search to every rule that uses the token", () => {
+    const document = parseGrammar(source);
+    const view = createDependencyGraph(document, analyzeGrammar(document), {
+      mode: "all",
+      query: "TOKEN",
+    });
+
+    expect(view.nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining(["TOKEN", "leaf", "unused"]),
+    );
+    expect(view.nodes.find((node) => node.id === "TOKEN")?.kind).toBe("terminal");
+    const rendered = renderDependencySvg(view).svg;
+    expect(rendered).toContain("kind-terminal");
+    expect(rendered).toContain("data-degree=");
   });
 });

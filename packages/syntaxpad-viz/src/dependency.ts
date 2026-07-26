@@ -37,6 +37,25 @@ const createEdgePairs = (document: GrammarDocument, model: GrammarModel): readon
   return pairs;
 };
 
+const terminalSearchPairs = (
+  document: GrammarDocument,
+  model: GrammarModel,
+  query: string | undefined,
+): readonly EdgePair[] => {
+  const normalized = query?.trim().toLocaleLowerCase();
+  if (normalized === undefined || normalized.length === 0) {
+    return [];
+  }
+  const namesByRuleId = new Map(document.rules.map((rule) => [rule.id, rule.name]));
+  return model.references.flatMap((reference) => {
+    if (reference.kind !== "terminal" || !reference.name.toLocaleLowerCase().includes(normalized)) {
+      return [];
+    }
+    const from = namesByRuleId.get(reference.fromRuleId);
+    return from === undefined ? [] : [{ from, to: reference.name }];
+  });
+};
+
 const createAdjacency = (
   pairs: readonly EdgePair[],
   directed: boolean,
@@ -108,7 +127,20 @@ const selectNodes = (
   options: NodeSelectionOptions,
 ): { readonly nodes: ReadonlySet<string>; readonly truncated: boolean } => {
   let selected: ReadonlySet<string>;
-  if (options.mode === "all") {
+  const query = options.query?.trim().toLocaleLowerCase();
+  if (query !== undefined && query.length > 0) {
+    const matches = new Set(
+      [...allNodes].filter((node) => node.toLocaleLowerCase().includes(query)),
+    );
+    const expanded = new Set(matches);
+    pairs.forEach((pair) => {
+      if (matches.has(pair.from) || matches.has(pair.to)) {
+        expanded.add(pair.from);
+        expanded.add(pair.to);
+      }
+    });
+    selected = expanded;
+  } else if (options.mode === "all") {
     selected = allNodes;
   } else {
     const adjacency = createAdjacency(pairs, options.mode === "reachable");
@@ -119,12 +151,7 @@ const selectNodes = (
     );
   }
 
-  const query = options.query?.trim().toLocaleLowerCase();
-  const searchSpace = query === undefined || query.length === 0 ? selected : allNodes;
-  const filtered =
-    query === undefined || query.length === 0
-      ? [...searchSpace]
-      : [...searchSpace].filter((node) => node.toLocaleLowerCase().includes(query));
+  const filtered = [...selected];
   filtered.sort((left, right) => {
     if (left === options.selected) {
       return -1;
@@ -141,14 +168,21 @@ const selectNodes = (
 const nodeRange = (document: GrammarDocument, id: string): SourceRange | undefined =>
   document.rules.find((rule) => rule.name === id)?.nameRange;
 
+const nodeKind = (
+  id: string,
+  defined: ReadonlySet<string>,
+  terminals: ReadonlySet<string>,
+): DependencyNode["kind"] =>
+  defined.has(id) ? "nonterminal" : terminals.has(id) ? "terminal" : "undefined";
+
 const nodeStatuses = (
   model: GrammarModel,
   id: string,
-  defined: ReadonlySet<string>,
+  kind: DependencyNode["kind"],
   conflicts: ReadonlySet<string>,
 ): DependencyNode["statuses"] => {
   const statuses: DependencyNode["statuses"][number][] = [];
-  if (!defined.has(id)) {
+  if (kind === "undefined") {
     statuses.push("undefined");
   }
   if (conflicts.has(id)) {
@@ -177,7 +211,10 @@ export const createDependencyGraph = (
     query: input.query,
     selected,
   };
-  const pairs = createEdgePairs(document, model);
+  const pairs = [
+    ...createEdgePairs(document, model),
+    ...terminalSearchPairs(document, model, options.query),
+  ];
   const defined = new Set(document.rules.map((rule) => rule.name));
   const allNodes = new Set(defined);
   pairs.forEach((pair) => {
@@ -216,11 +253,13 @@ export const createDependencyGraph = (
     }
     const range = nodeRange(document, id);
     const distanceFromStart = distances.get(id);
+    const kind = nodeKind(id, defined, model.terminals);
     const base = {
       degree: degrees.get(id) ?? 0,
       height: positioned.height,
       id,
-      statuses: nodeStatuses(model, id, defined, conflicts),
+      kind,
+      statuses: nodeStatuses(model, id, kind, conflicts),
       width: positioned.width,
       x: positioned.x,
       y: positioned.y,

@@ -144,6 +144,7 @@ const updateConflicts = (model: GrammarViewModel): void => {
             end: target.end,
             preferDefinition: false,
             start: target.start,
+            startedAt: Date.now(),
             type: "navigate",
             uri: model.uri,
           });
@@ -198,6 +199,7 @@ const activateRangedElement = (element: Element, preferDefinition: boolean): voi
     end,
     preferDefinition,
     start,
+    startedAt: Date.now(),
     type: "navigate",
     uri: currentModel.uri,
   });
@@ -289,6 +291,13 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
         element.classList.add("is-selected");
       }
     });
+    if (message.sentAt !== undefined) {
+      post({
+        durationMs: Math.max(0, Date.now() - message.sentAt),
+        kind: "cursor-highlight",
+        type: "performance",
+      });
+    }
     return;
   }
 
@@ -307,6 +316,13 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
     (message.model.conflictReport?.totals.shiftReduce ?? 0) +
     (message.model.conflictReport?.totals.reduceReduce ?? 0);
   status.textContent = `${String(message.model.ruleCount)} rules · ${String(message.model.references)} references · ${String(message.model.diagnostics)} diagnostics · ${String(conflictCount)} conflicts`;
+  if (message.sentAt !== undefined) {
+    post({
+      durationMs: Math.max(0, Date.now() - message.sentAt),
+      kind: "cursor-highlight",
+      type: "performance",
+    });
+  }
 });
 
 post({ type: "ready" });

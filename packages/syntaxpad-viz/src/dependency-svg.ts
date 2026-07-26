@@ -20,20 +20,30 @@ const renderNode = (node: DependencyNode): string => {
   const x = node.x - node.width / 2;
   const y = node.y - node.height / 2;
   const statuses = statusLabel(node);
-  const classes = ["dependency-node", ...node.statuses.map((status) => `status-${status}`)].join(
-    " ",
-  );
+  const degreeClass = node.degree >= 5 ? "degree-high" : node.degree >= 3 ? "degree-medium" : "";
+  const classes = [
+    "dependency-node",
+    `kind-${node.kind}`,
+    degreeClass,
+    ...node.statuses.map((status) => `status-${status}`),
+  ]
+    .filter((value) => value.length > 0)
+    .join(" ");
   const range =
     node.range === undefined
       ? ""
       : `data-start="${String(node.range.start)}" data-end="${String(node.range.end)}"`;
   const distance =
     node.distanceFromStart === undefined ? "" : `data-distance="${String(node.distanceFromStart)}"`;
+  const distanceLabel =
+    node.distanceFromStart === undefined
+      ? ""
+      : `, distance ${String(node.distanceFromStart)} from start`;
   const statusMarkup =
     statuses.length === 0
       ? ""
       : `<text class="dependency-status" x="${String(node.x)}" y="${String(y + node.height + 14)}" text-anchor="middle">${escapeXml(statuses)}</text>`;
-  return `<g class="${classes}" role="button" tabindex="0" aria-label="${escapeXml(`${node.id}, degree ${String(node.degree)}${statuses.length === 0 ? "" : `, ${statuses}`}`)}" data-symbol="${escapeXml(node.id)}" ${range} ${distance}><rect x="${String(x)}" y="${String(y)}" width="${String(node.width)}" height="${String(node.height)}" rx="7"/><text x="${String(node.x)}" y="${String(node.y + 5)}" text-anchor="middle">${escapeXml(node.id)}</text>${statusMarkup}</g>`;
+  return `<g class="${classes}" role="button" tabindex="0" aria-label="${escapeXml(`${node.id}, ${node.kind}, degree ${String(node.degree)}${distanceLabel}${statuses.length === 0 ? "" : `, ${statuses}`}`)}" data-degree="${String(node.degree)}" data-symbol="${escapeXml(node.id)}" ${range} ${distance}><rect x="${String(x)}" y="${String(y)}" width="${String(node.width)}" height="${String(node.height)}" rx="7"/><text x="${String(node.x)}" y="${String(node.y + 5)}" text-anchor="middle">${escapeXml(node.id)}</text>${statusMarkup}</g>`;
 };
 
 export const renderDependencySvg = (view: DependencyGraphView): SvgRender => {

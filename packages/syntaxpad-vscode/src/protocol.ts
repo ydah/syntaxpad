@@ -8,6 +8,7 @@ export const viewMessageSchema = z.discriminatedUnion("type", [
     end: z.number().int().nonnegative(),
     preferDefinition: z.boolean(),
     start: z.number().int().nonnegative(),
+    startedAt: z.number().nonnegative().optional(),
     type: z.literal("navigate"),
     uri: z.string(),
   }),
@@ -34,6 +35,11 @@ export const viewMessageSchema = z.discriminatedUnion("type", [
     ruleId: z.string(),
     to: z.number().int().nonnegative(),
     type: z.literal("moveAlternative"),
+  }),
+  z.strictObject({
+    durationMs: z.number().nonnegative().max(60_000),
+    kind: z.literal("cursor-highlight"),
+    type: z.literal("performance"),
   }),
 ]);
 
@@ -100,10 +106,12 @@ export const grammarViewModelSchema = z.strictObject({
 export const hostMessageSchema = z.discriminatedUnion("type", [
   z.strictObject({
     model: grammarViewModelSchema,
+    sentAt: z.number().nonnegative().optional(),
     type: z.literal("model"),
   }),
   z.strictObject({
     offset: z.number().int().nonnegative(),
+    sentAt: z.number().nonnegative().optional(),
     type: z.literal("selection"),
   }),
   z.strictObject({

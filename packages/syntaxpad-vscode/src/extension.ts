@@ -3,7 +3,7 @@ import { LanguageClient, TransportKind } from "vscode-languageclient/node";
 import type { LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
 import * as vscode from "vscode";
 
-import { registerRefactoringCommands } from "./commands.js";
+import { registerRefactoringCommands, type MetricRecorder } from "./commands.js";
 import { registerConflictAnalysis } from "./external-tools.js";
 import { SyntaxPadPanel } from "./panel.js";
 
@@ -55,7 +55,17 @@ const foldActions = async (
 };
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
-  registerRefactoringCommands(context);
+  const metrics = vscode.window.createOutputChannel("SyntaxPad Metrics");
+  context.subscriptions.push(metrics);
+  const recordMetric: MetricRecorder = (kind, durationMs) => {
+    const result =
+      durationMs <= 200 ? "target" : durationMs <= 1_000 ? "within limit" : "over limit";
+    metrics.appendLine(
+      `${new Date().toISOString()} ${kind}: ${durationMs.toFixed(1)} ms (${result}; target 200 ms, limit 1000 ms)`,
+    );
+  };
+  SyntaxPadPanel.setMetricsChannel(metrics);
+  registerRefactoringCommands(context, recordMetric);
   registerConflictAnalysis(context);
   context.subscriptions.push(
     vscode.commands.registerCommand("syntaxpad.openView", async () => {

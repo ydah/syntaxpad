@@ -5,7 +5,14 @@ export { analyzeGrammar } from "./model.js";
 export { applyTextPatches, InvalidPatchError, validatePatches } from "./patches.js";
 export { findRuleAtOffset, getFoldingRanges, parseGrammar, printGrammar } from "./parser.js";
 export { renameSymbol } from "./rename.js";
-export { extractRule, inlineRule, wrapSelection, type WrapKind } from "./structural.js";
+export {
+  extractRule,
+  inlineRule,
+  wrapSelection,
+  type GeneratedRuleOptions,
+  type NewRulePlacement,
+  type WrapKind,
+} from "./structural.js";
 export { formatNewRule, formatNewRuleAlternatives, inferRuleStyle } from "./style.js";
 export type {
   ActionItem,

@@ -45,6 +45,7 @@ export interface DependencyNode {
   readonly distanceFromStart?: number;
   readonly height: number;
   readonly id: string;
+  readonly kind: "nonterminal" | "terminal" | "undefined";
   readonly range?: SourceRange;
   readonly statuses: readonly ("conflict" | "undefined" | "unreachable" | "unused")[];
   readonly width: number;

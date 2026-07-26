@@ -8,13 +8,19 @@ import {
   wrapSelection,
   type Dialect,
   type GrammarDocument,
+  type NewRulePlacement,
   type SourceRange,
   type TransformPlan,
   type TransformResult,
   type WrapKind,
 } from "@syntaxpad/core";
 import { z } from "zod";
+import { performance } from "node:perf_hooks";
 import * as vscode from "vscode";
+
+export type MetricRecorder = (kind: "workspace-edit", durationMs: number) => void;
+
+let recordMetric: MetricRecorder | undefined;
 
 const rangeArgumentSchema = z.strictObject({
   end: z.number().int().nonnegative(),
@@ -40,6 +46,13 @@ const dialectFor = (document: vscode.TextDocument): Dialect => {
     .get<string>("dialect", "bison");
   return value === "yacc" || value === "lrama" ? value : "bison";
 };
+
+const newRulePlacementFor = (document: vscode.TextDocument): NewRulePlacement =>
+  vscode.workspace
+    .getConfiguration("syntaxpad", document.uri)
+    .get<string>("newRulePlacement", "afterSource") === "sectionEnd"
+    ? "sectionEnd"
+    : "afterSource";
 
 const editorFor = async (uri?: string): Promise<vscode.TextEditor | undefined> => {
   const active = vscode.window.activeTextEditor;
@@ -75,6 +88,7 @@ const applyPlan = async (
   expectedVersion: number,
   result: TransformResult,
 ): Promise<boolean> => {
+  const startedAt = performance.now();
   if (!result.ok) {
     await vscode.window.showErrorMessage(result.error.message);
     return false;
@@ -98,6 +112,7 @@ const applyPlan = async (
     );
   });
   const applied = await vscode.workspace.applyEdit(edit);
+  recordMetric?.("workspace-edit", performance.now() - startedAt);
   if (!applied) {
     await vscode.window.showErrorMessage("VS Code rejected the grammar edit.");
     return false;
@@ -141,7 +156,9 @@ const extractCommand = async (input: unknown): Promise<void> => {
   await applyPlan(
     editor,
     version,
-    extractRule(parseEditor(editor), activeSelection(editor, input), name),
+    extractRule(parseEditor(editor), activeSelection(editor, input), name, {
+      placement: newRulePlacementFor(editor.document),
+    }),
   );
 };
 
@@ -154,13 +171,14 @@ const wrapCommand = async (input: unknown, kind: WrapKind): Promise<void> => {
   const version = editor.document.version;
   const document = parseEditor(editor);
   const selection = activeSelection(editor, input);
-  let result = wrapSelection(document, selection, kind);
+  const options = { placement: newRulePlacementFor(editor.document) };
+  let result = wrapSelection(document, selection, kind, undefined, options);
   if (!result.ok && result.error.code === "helper-name-required") {
     const helperName = await promptRuleName(`Name for the generated ${kind} rule`);
     if (helperName === undefined) {
       return;
     }
-    result = wrapSelection(document, selection, kind, helperName);
+    result = wrapSelection(document, selection, kind, helperName, options);
   }
   await applyPlan(editor, version, result);
 };
@@ -237,7 +255,11 @@ const reorderCommand = async (input: unknown): Promise<void> => {
   );
 };
 
-export const registerRefactoringCommands = (context: vscode.ExtensionContext): void => {
+export const registerRefactoringCommands = (
+  context: vscode.ExtensionContext,
+  metrics?: MetricRecorder,
+): void => {
+  recordMetric = metrics;
   context.subscriptions.push(
     vscode.commands.registerCommand("syntaxpad.extractRule", extractCommand),
     vscode.commands.registerCommand("syntaxpad.inlineRule", inlineCommand),

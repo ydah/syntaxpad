@@ -23,6 +23,12 @@ import type {
 
 const VALID_SYMBOL_NAME = /^[A-Za-z_.][A-Za-z0-9_.-]*$/u;
 
+export type NewRulePlacement = "afterSource" | "sectionEnd";
+
+export interface GeneratedRuleOptions {
+  readonly placement?: NewRulePlacement;
+}
+
 interface SelectionContext {
   readonly alternative: AlternativeNode;
   readonly first: AlternativeItem;
@@ -181,10 +187,20 @@ const validateNewRuleName = (
   return undefined;
 };
 
+const generatedRuleInsertionOffset = (
+  document: GrammarDocument,
+  sourceRule: RuleNode,
+  placement: NewRulePlacement,
+): number =>
+  placement === "sectionEnd"
+    ? (document.rules.at(-1)?.range.end ?? sourceRule.range.end)
+    : sourceRule.range.end;
+
 export const extractRule = (
   document: GrammarDocument,
   selection: SourceRange,
   newRuleName: string,
+  options: GeneratedRuleOptions = {},
 ): TransformResult => {
   const invalidName = validateNewRuleName(document, newRuleName);
   if (invalidName !== undefined) {
@@ -206,6 +222,11 @@ export const extractRule = (
 
   const selectedText = document.source.slice(context.range.start, context.range.end);
   const generated = formatNewRuleAlternatives(document, context.rule, newRuleName, [selectedText]);
+  const insertionOffset = generatedRuleInsertionOffset(
+    document,
+    context.rule,
+    options.placement ?? "afterSource",
+  );
   return finalizeTransform({
     conflictCheckRecommended: true,
     document,
@@ -213,7 +234,7 @@ export const extractRule = (
       { range: context.range, text: newRuleName },
       ...renumbered,
       {
-        range: { end: context.rule.range.end, start: context.rule.range.end },
+        range: { end: insertionOffset, start: insertionOffset },
         sequence: 0,
         text: generated,
       },
@@ -235,6 +256,7 @@ export const wrapSelection = (
   selection: SourceRange,
   kind: WrapKind,
   helperName?: string,
+  options: GeneratedRuleOptions = {},
 ): TransformResult => {
   const context = selectionContext(document, selection);
   if (isTransformFailure(context)) {
@@ -279,8 +301,13 @@ export const wrapSelection = (
         : kind === "option"
           ? ["/* empty */", selectedText]
           : ["/* empty */", `${generatedHelperName} ${selectedText}`];
+    const insertionOffset = generatedRuleInsertionOffset(
+      document,
+      context.rule,
+      options.placement ?? "afterSource",
+    );
     patches.push({
-      range: { end: context.rule.range.end, start: context.rule.range.end },
+      range: { end: insertionOffset, start: insertionOffset },
       sequence: 0,
       text: formatNewRuleAlternatives(document, context.rule, generatedHelperName, alternatives),
     });

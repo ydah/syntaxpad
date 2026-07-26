@@ -103,6 +103,29 @@ start:
     });
   });
 
+  it("places generated rules at the section end when configured", () => {
+    const source = `%token A B C
+%%
+start:
+  A B
+;
+tail:
+  C
+;
+%%`;
+    const result = extractRule(parseGrammar(source), rangeOf(source, "A B"), "prefix", {
+      placement: "sectionEnd",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.plan.preview.indexOf("prefix:")).toBeGreaterThan(
+      result.plan.preview.indexOf("tail:"),
+    );
+  });
+
   it("wraps one Lrama symbol and renumbers collapsed positions", () => {
     const source = `%token A B
 %%

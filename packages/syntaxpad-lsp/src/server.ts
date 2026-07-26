@@ -96,7 +96,7 @@ const snapshotFor = async (document: TextDocument): Promise<LanguageSnapshot> =>
   return snapshot;
 };
 
-const publishDiagnostics = async (document: TextDocument): Promise<void> => {
+const publishDiagnostics = async (document: TextDocument, startedAt?: number): Promise<void> => {
   const version = document.version;
   const snapshot = await snapshotFor(document);
   if (documents.get(document.uri)?.version !== version) {
@@ -110,9 +110,18 @@ const publishDiagnostics = async (document: TextDocument): Promise<void> => {
     source: "SyntaxPad",
   }));
   await connection.sendDiagnostics({ diagnostics, uri: document.uri, version });
+  if (startedAt !== undefined) {
+    const durationMs = Date.now() - startedAt;
+    const result =
+      durationMs <= 300 ? "target" : durationMs <= 1_000 ? "within limit" : "over limit";
+    connection.console.log(
+      `diagnostics: ${String(durationMs)} ms (${result}; target 300 ms, limit 1000 ms)`,
+    );
+  }
 };
 
 const scheduleDiagnostics = (document: TextDocument, delay = 120): void => {
+  const startedAt = Date.now();
   const previous = validationTimers.get(document.uri);
   if (previous !== undefined) {
     clearTimeout(previous);
@@ -121,7 +130,7 @@ const scheduleDiagnostics = (document: TextDocument, delay = 120): void => {
     document.uri,
     setTimeout(() => {
       validationTimers.delete(document.uri);
-      void publishDiagnostics(document).catch((error: unknown) => {
+      void publishDiagnostics(document, startedAt).catch((error: unknown) => {
         connection.console.error(
           error instanceof Error ? error.message : "Failed to publish diagnostics.",
         );
