@@ -3,7 +3,7 @@ set -eu
 
 repo_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 destination="$repo_root/fixtures/external"
-ruby_commit="7b247dd1c9be93c19c2e9eab5b7a65d21bbd261f"
+ruby_commit="97d602a55f9e77bd64c2130dc0a755f657b4ce65"
 source_url="https://raw.githubusercontent.com/ruby/ruby/$ruby_commit/parse.y"
 license_url="https://raw.githubusercontent.com/ruby/ruby/$ruby_commit/COPYING"
 

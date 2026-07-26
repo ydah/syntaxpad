@@ -19,3 +19,9 @@ benchmarks decide whether this remains viable.
 
 If 10,000-line p95 complete analysis exceeds 300 ms, prototype Tree-sitter and Rust/Wasm behind the
 same API and record the comparison.
+
+## M0 result
+
+On 2026-07-26, ten full parse-plus-model runs measured p95 25.94 ms for a generated 10,505-line
+grammar and p95 16.57 ms for CRuby `parse.y` (16,091 lines, upstream commit
+`97d602a55f9e77bd64c2130dc0a755f657b4ce65`). The dedicated parser remains the selected approach.

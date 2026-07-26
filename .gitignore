@@ -5,6 +5,8 @@
 /coverage/
 /dist/
 /out/
+/fixtures/external/
+/packages/*/dist/
 /*.vsix
 *.tsbuildinfo
 *.log
