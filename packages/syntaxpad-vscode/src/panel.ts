@@ -12,6 +12,7 @@ import type { ConflictReport } from "@syntaxpad/tools";
 import { randomBytes } from "node:crypto";
 import * as vscode from "vscode";
 
+import { createConflictCommandArgument } from "./conflict-command.js";
 import { type HostMessage, type ViewMessage, viewMessageSchema } from "./protocol.js";
 import { createGrammarViewModel } from "./view-model.js";
 
@@ -327,8 +328,18 @@ export class SyntaxPadPanel implements vscode.Disposable {
       case "performance":
         this.recordMetric(message.kind, message.durationMs);
         return;
-      case "runConflicts":
-        await vscode.commands.executeCommand(`syntaxpad.${message.type}`);
+      case "runConflicts": {
+        const argument = createConflictCommandArgument(this.cache?.uri);
+        if (argument === undefined) {
+          await this.post({
+            message: "Open a Bison, Yacc, or Lrama grammar file before analyzing conflicts.",
+            type: "error",
+          });
+          return;
+        }
+        await vscode.commands.executeCommand("syntaxpad.runConflicts", argument);
+        return;
+      }
     }
   }
 

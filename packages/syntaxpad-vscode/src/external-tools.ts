@@ -9,6 +9,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import * as vscode from "vscode";
 
+import { parseConflictCommandTarget } from "./conflict-command.js";
 import { SyntaxPadPanel } from "./panel.js";
 
 const toolConfigurationSchema = z.strictObject({
@@ -166,8 +167,24 @@ export const registerConflictAnalysis = (context: vscode.ExtensionContext): void
         diagnostics.delete(event.document.uri);
       }
     }),
-    vscode.commands.registerCommand("syntaxpad.runConflicts", async () => {
-      const document = vscode.window.activeTextEditor?.document;
+    vscode.commands.registerCommand("syntaxpad.runConflicts", async (input: unknown) => {
+      const target = parseConflictCommandTarget(input);
+      if (target.kind === "invalid") {
+        await vscode.window.showErrorMessage("The conflict analysis request was invalid.");
+        return;
+      }
+      let document: vscode.TextDocument | undefined;
+      try {
+        document =
+          target.kind === "document"
+            ? await vscode.workspace.openTextDocument(vscode.Uri.parse(target.uri, true))
+            : vscode.window.activeTextEditor?.document;
+      } catch {
+        await vscode.window.showErrorMessage(
+          "The grammar selected for conflict analysis could not be opened.",
+        );
+        return;
+      }
       if (!isGrammarDocument(document)) {
         await vscode.window.showErrorMessage("Open a Bison, Yacc, or Lrama grammar first.");
         return;
