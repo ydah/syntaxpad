@@ -137,6 +137,25 @@ start:
     expect(codes).toContain("action-name-not-found");
   });
 
+  it("reports missing %type only for a typed non-Yacc profile", () => {
+    const source = `%type <node> start
+%%
+start: other ;
+other: %empty ;
+%%`;
+
+    expect(
+      analyzeGrammar(parseGrammar(source, { dialect: "bison" })).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).toContain("missing-type-declaration");
+    expect(
+      analyzeGrammar(parseGrammar(source, { dialect: "yacc" })).diagnostics.map(
+        (diagnostic) => diagnostic.code,
+      ),
+    ).not.toContain("missing-type-declaration");
+  });
+
   it("understands Lrama parameterized standard rules", async () => {
     const document = parseGrammar(await fixture("medium/sql-subset.y"), {
       dialect: "lrama",

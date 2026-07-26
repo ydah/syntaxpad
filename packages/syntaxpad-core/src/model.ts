@@ -159,6 +159,11 @@ const createStructuralDiagnostics = (
   unreachableRules: ReadonlySet<string>,
 ): readonly GrammarDiagnostic[] => {
   const diagnostics: GrammarDiagnostic[] = [];
+  const typedRules = new Set(
+    document.declarations
+      .filter((declaration) => declaration.directive === "%type")
+      .flatMap((declaration) => declaration.symbols.map((symbol) => symbol.name)),
+  );
   definitions.forEach((entries, name) => {
     entries.slice(1).forEach((entry) => {
       diagnostics.push({
@@ -180,6 +185,14 @@ const createStructuralDiagnostics = (
       });
     });
   document.rules.forEach((rule) => {
+    if (document.dialect !== "yacc" && typedRules.size > 0 && !typedRules.has(rule.name)) {
+      diagnostics.push({
+        code: "missing-type-declaration",
+        message: `Rule "${rule.name}" has no %type declaration in this typed grammar.`,
+        range: rule.nameRange,
+        severity: "warning",
+      });
+    }
     if (unusedRules.has(rule.name)) {
       diagnostics.push({
         code: "unused-rule",

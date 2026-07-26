@@ -69,6 +69,10 @@
       {
         "command": "syntaxpad.addAlternative",
         "title": "SyntaxPad: Add Alternative"
+      },
+      {
+        "command": "syntaxpad.foldActions",
+        "title": "SyntaxPad: Fold Action Blocks"
       }
     ],
     "configuration": {
@@ -92,6 +96,11 @@
           ],
           "default": "afterSource",
           "description": "Where generated helper rules are inserted."
+        },
+        "syntaxpad.foldActionsByDefault": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fold embedded action blocks when a grammar editor is activated."
         },
         "syntaxpad.tool.kind": {
           "type": "string",
