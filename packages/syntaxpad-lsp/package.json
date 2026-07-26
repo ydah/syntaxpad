@@ -1,0 +1,13 @@
+{
+  "name": "@syntaxpad/lsp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "dependencies": {
+    "@syntaxpad/core": "0.1.0",
+    "vscode-languageserver": "10.1.0",
+    "vscode-languageserver-textdocument": "1.0.12"
+  }
+}

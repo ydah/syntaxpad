@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Yacc",
+  "scopeName": "source.yacc",
+  "patterns": [
+    { "include": "#comments" },
+    {
+      "name": "keyword.control.directive.yacc",
+      "match": "%(?:token|nterm|type|start|left|right|nonassoc|precedence|prec|empty|rule|inline|define|code|union|destructor|printer|expect(?:-rr)?|locations)\\b"
+    },
+    {
+      "name": "constant.language.section.yacc",
+      "match": "^\\s*%%\\s*$"
+    },
+    {
+      "name": "entity.name.function.rule.yacc",
+      "match": "^\\s*([A-Za-z_.][A-Za-z0-9_.-]*)(?=\\s*(?:\\([^\\n]*\\))?\\s*:)"
+    },
+    {
+      "begin": "'",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.yacc" } },
+      "end": "'",
+      "endCaptures": { "0": { "name": "punctuation.definition.string.end.yacc" } },
+      "name": "string.quoted.single.yacc",
+      "patterns": [{ "name": "constant.character.escape.yacc", "match": "\\\\." }]
+    },
+    {
+      "begin": "\"",
+      "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.yacc" } },
+      "end": "\"",
+      "endCaptures": { "0": { "name": "punctuation.definition.string.end.yacc" } },
+      "name": "string.quoted.double.yacc",
+      "patterns": [{ "name": "constant.character.escape.yacc", "match": "\\\\." }]
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.yacc",
+          "match": "//.*$"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.yacc"
+        }
+      ]
+    }
+  }
+}

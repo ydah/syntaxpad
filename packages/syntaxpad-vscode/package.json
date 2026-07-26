@@ -1,0 +1,183 @@
+{
+  "name": "syntaxpad",
+  "displayName": "SyntaxPad",
+  "description": "Visualize and safely refactor Bison, Yacc, and Lrama grammars",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "syntaxpad",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization"
+  ],
+  "keywords": [
+    "bison",
+    "yacc",
+    "lrama",
+    "grammar",
+    "railroad"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:yacc",
+    "onCommand:syntaxpad.openView"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Grammar analysis remains available. External Bison and Lrama commands are disabled.",
+      "restrictedConfigurations": [
+        "syntaxpad.tool.executable",
+        "syntaxpad.tool.arguments"
+      ]
+    },
+    "virtualWorkspaces": {
+      "supported": true
+    }
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "syntaxpad.openView",
+        "title": "SyntaxPad: Open Grammar View"
+      },
+      {
+        "command": "syntaxpad.runConflicts",
+        "title": "SyntaxPad: Run Conflict Analysis",
+        "enablement": "isWorkspaceTrusted"
+      },
+      {
+        "command": "syntaxpad.extractRule",
+        "title": "SyntaxPad: Extract Rule"
+      },
+      {
+        "command": "syntaxpad.inlineRule",
+        "title": "SyntaxPad: Inline Rule"
+      },
+      {
+        "command": "syntaxpad.wrapOption",
+        "title": "SyntaxPad: Wrap in Option"
+      },
+      {
+        "command": "syntaxpad.wrapList",
+        "title": "SyntaxPad: Wrap in List"
+      },
+      {
+        "command": "syntaxpad.addAlternative",
+        "title": "SyntaxPad: Add Alternative"
+      }
+    ],
+    "configuration": {
+      "title": "SyntaxPad",
+      "properties": {
+        "syntaxpad.dialect": {
+          "type": "string",
+          "enum": [
+            "yacc",
+            "bison",
+            "lrama"
+          ],
+          "default": "bison",
+          "description": "Grammar dialect used for diagnostics and completion."
+        },
+        "syntaxpad.newRulePlacement": {
+          "type": "string",
+          "enum": [
+            "afterSource",
+            "sectionEnd"
+          ],
+          "default": "afterSource",
+          "description": "Where generated helper rules are inserted."
+        },
+        "syntaxpad.tool.kind": {
+          "type": "string",
+          "enum": [
+            "bison",
+            "lrama"
+          ],
+          "default": "bison",
+          "description": "Parser generator used for conflict analysis."
+        },
+        "syntaxpad.tool.executable": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "description": "Optional executable path. Empty uses the selected tool name."
+        },
+        "syntaxpad.tool.arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "resource",
+          "description": "Additional argument strings passed without a shell."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "yacc",
+        "aliases": [
+          "Yacc",
+          "Bison",
+          "Lrama"
+        ],
+        "extensions": [
+          ".y",
+          ".yy"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "yacc",
+        "scopeName": "source.yacc",
+        "path": "./syntaxes/yacc.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "syntaxpad.extractRule",
+          "when": "editorLangId == yacc && editorHasSelection",
+          "group": "1_modification"
+        },
+        {
+          "command": "syntaxpad.addAlternative",
+          "when": "editorLangId == yacc",
+          "group": "1_modification"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "syntaxpad.openView",
+          "when": "editorLangId == yacc",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@syntaxpad/core": "0.1.0",
+    "@syntaxpad/viz": "0.1.0",
+    "fast-xml-parser": "5.10.1",
+    "vscode-languageclient": "10.1.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.125.0"
+  },
+  "files": [
+    "dist/**",
+    "language-configuration.json",
+    "syntaxes/**",
+    "README.md",
+    "LICENSE"
+  ]
+}

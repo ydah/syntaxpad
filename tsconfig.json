@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/syntaxpad-core" },
+    { "path": "packages/syntaxpad-viz" },
+    { "path": "packages/syntaxpad-lsp" },
+    { "path": "packages/syntaxpad-vscode" }
+  ]
+}
