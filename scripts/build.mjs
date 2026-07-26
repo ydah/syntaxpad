@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import { copyFile } from "node:fs/promises";
 
 await Promise.all([
   build({
@@ -29,4 +30,8 @@ await Promise.all([
     sourcemap: true,
     target: "es2022",
   }),
+  copyFile(
+    "packages/syntaxpad-vscode/src/webview/styles.css",
+    "packages/syntaxpad-vscode/dist/webview.css",
+  ),
 ]);

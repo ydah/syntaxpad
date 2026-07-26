@@ -1,0 +1,239 @@
+:root {
+  color-scheme: light dark;
+  font-family: var(--vscode-font-family, "IBM Plex Sans", system-ui, sans-serif);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  margin: 0;
+  min-width: 320px;
+}
+
+.sr-only {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.toolbar {
+  align-items: center;
+  background: var(--vscode-editorWidget-background);
+  border-bottom: 1px solid var(--vscode-editorWidget-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.toolbar label {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.toolbar select,
+.toolbar input,
+.toolbar button {
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--vscode-editorWidget-border));
+  border-radius: 4px;
+  color: var(--vscode-input-foreground);
+  cursor: pointer;
+  font: inherit;
+  min-height: 32px;
+  padding: 5px 8px;
+}
+
+.toolbar input {
+  cursor: text;
+  min-width: 180px;
+}
+
+.toolbar button[aria-pressed="true"] {
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--vscode-focusBorder);
+  outline-offset: 2px;
+}
+
+main {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: 12px;
+}
+
+.pane {
+  background: var(--vscode-editorWidget-background);
+  border: 1px solid var(--vscode-editorWidget-border);
+  border-radius: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pane-heading {
+  align-items: baseline;
+  border-bottom: 1px solid var(--vscode-editorWidget-border);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 9px 12px;
+}
+
+.pane-heading h1 {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.pane-heading span {
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-editor-font-family, "JetBrains Mono", monospace);
+}
+
+.diagram {
+  min-height: 220px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.diagram svg {
+  display: block;
+  min-width: 100%;
+}
+
+.railroad-track,
+.railroad-loop,
+.dependency-edge {
+  fill: none;
+  stroke: var(--vscode-editor-foreground);
+  stroke-width: 1.5;
+}
+
+.railroad-element,
+.dependency-node {
+  cursor: pointer;
+  transition:
+    color 150ms ease-out,
+    opacity 150ms ease-out;
+}
+
+.railroad-element rect,
+.railroad-element path,
+.dependency-node rect {
+  fill: var(--vscode-editor-background);
+  stroke: var(--vscode-editor-foreground);
+  stroke-width: 1.5;
+}
+
+.railroad-terminal rect {
+  fill: var(--vscode-badge-background);
+  stroke: var(--vscode-badge-foreground);
+}
+
+.railroad-action path,
+.railroad-precedence rect {
+  fill: var(--vscode-editorWarning-background, var(--vscode-editor-background));
+  stroke: var(--vscode-editorWarning-foreground);
+}
+
+.railroad-element text,
+.dependency-node text,
+.railroad-fold-label,
+.railroad-empty-label {
+  fill: var(--vscode-editor-foreground);
+  font-family: var(--vscode-editor-font-family, "JetBrains Mono", monospace);
+  font-size: 12px;
+}
+
+.railroad-fold-badge rect {
+  fill: var(--vscode-badge-background);
+}
+
+.railroad-fold-badge text {
+  fill: var(--vscode-badge-foreground);
+  font-size: 11px;
+}
+
+.dependency-edge {
+  marker-end: url("#syntaxpad-arrow");
+}
+
+#syntaxpad-arrow path {
+  fill: var(--vscode-editor-foreground);
+}
+
+.dependency-node.status-conflict rect {
+  stroke: var(--vscode-editorError-foreground);
+  stroke-width: 3;
+}
+
+.dependency-node.status-undefined rect {
+  stroke-dasharray: 5 3;
+}
+
+.dependency-node.status-unused,
+.dependency-node.status-unreachable {
+  opacity: 0.66;
+}
+
+.dependency-status,
+.dependency-truncated {
+  fill: var(--vscode-descriptionForeground);
+  font-size: 10px;
+}
+
+.railroad-element:hover,
+.dependency-node:hover {
+  opacity: 0.78;
+}
+
+.railroad-element:focus-visible rect,
+.railroad-element:focus-visible path,
+.dependency-node:focus-visible rect,
+.is-selected rect,
+.is-selected path {
+  stroke: var(--vscode-focusBorder);
+  stroke-width: 3;
+}
+
+footer {
+  border-top: 1px solid var(--vscode-editorWidget-border);
+  color: var(--vscode-descriptionForeground);
+  padding: 8px 12px;
+}
+
+@media (max-width: 700px) {
+  main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .search-label,
+  .search-label input {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .railroad-element,
+  .dependency-node {
+    transition: none;
+  }
+}
