@@ -24,11 +24,14 @@ const search = requiredElement("#search", HTMLInputElement);
 const graphMode = requiredElement("#graph-mode", HTMLSelectElement);
 const distance = requiredElement("#distance", HTMLSelectElement);
 const foldToggle = requiredElement("#fold-toggle", HTMLButtonElement);
+const runConflicts = requiredElement("#run-conflicts", HTMLButtonElement);
 const railroad = requiredElement("#railroad", HTMLDivElement);
 const dependency = requiredElement("#dependency", HTMLDivElement);
 const alternativeControls = requiredElement("#alternative-controls", HTMLDivElement);
 const ruleName = requiredElement("#rule-name", HTMLSpanElement);
 const graphNote = requiredElement("#graph-note", HTMLSpanElement);
+const conflictSummary = requiredElement("#conflict-summary", HTMLSpanElement);
+const conflicts = requiredElement("#conflicts", HTMLDivElement);
 const status = requiredElement("#status", HTMLElement);
 let currentModel: GrammarViewModel | undefined;
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -113,6 +116,75 @@ const updateAlternativeControls = (model: GrammarViewModel): void => {
   );
 };
 
+const updateConflicts = (model: GrammarViewModel): void => {
+  const report = model.conflictReport;
+  if (report === undefined) {
+    conflictSummary.textContent = "Not run";
+    const message = document.createElement("p");
+    message.textContent = "Run conflict analysis to inspect parser-generator results.";
+    conflicts.replaceChildren(message);
+    return;
+  }
+  conflictSummary.textContent = `${String(report.totals.shiftReduce)} S/R · ${String(report.totals.reduceReduce)} R/R · ${report.format} · ${report.detail}`;
+  const children: HTMLElement[] = report.conflicts.map((conflict) => {
+    const article = document.createElement("article");
+    article.className = "conflict-item";
+    const heading = document.createElement("strong");
+    heading.textContent = conflict.message;
+    article.append(heading);
+    if (conflict.targets.length > 0) {
+      const targetList = document.createElement("div");
+      targetList.className = "conflict-targets";
+      conflict.targets.forEach((target) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = `Go to ${target.ruleName}`;
+        button.addEventListener("click", () => {
+          post({
+            end: target.end,
+            preferDefinition: false,
+            start: target.start,
+            type: "navigate",
+            uri: model.uri,
+          });
+        });
+        targetList.append(button);
+      });
+      article.append(targetList);
+    } else {
+      const unmapped = document.createElement("span");
+      unmapped.className = "conflict-unmapped";
+      unmapped.textContent = "Location unavailable";
+      article.append(unmapped);
+    }
+    if (conflict.counterexample !== undefined) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "Counterexample";
+      const pre = document.createElement("pre");
+      pre.textContent = conflict.counterexample;
+      details.append(summary, pre);
+      article.append(details);
+    }
+    return article;
+  });
+  report.messages.forEach((text) => {
+    const message = document.createElement("p");
+    message.className = "conflict-message";
+    message.textContent = text;
+    children.push(message);
+  });
+  if (children.length === 0) {
+    const clear = document.createElement("p");
+    clear.textContent =
+      report.detail === "failed"
+        ? "Conflict analysis failed without a detailed report."
+        : "No parser conflicts were reported.";
+    children.push(clear);
+  }
+  conflicts.replaceChildren(...children);
+};
+
 const activateRangedElement = (element: Element, preferDefinition: boolean): void => {
   if (currentModel === undefined) {
     return;
@@ -168,6 +240,10 @@ foldToggle.addEventListener("click", () => {
   post({ folded, type: "toggleFold" });
 });
 
+runConflicts.addEventListener("click", () => {
+  post({ type: "runConflicts" });
+});
+
 const postGraphSettings = (): void => {
   const mode = graphMode.value;
   if (mode !== "all" && mode !== "neighborhood" && mode !== "reachable") {
@@ -219,6 +295,7 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   currentModel = message.model;
   updateRuleOptions(message.model);
   updateAlternativeControls(message.model);
+  updateConflicts(message.model);
   railroad.innerHTML = message.model.railroadSvg;
   dependency.innerHTML = message.model.dependencySvg;
   ruleName.textContent = message.model.selectedRuleName;
@@ -226,7 +303,10 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   distance.value = String(message.model.distance);
   foldToggle.setAttribute("aria-pressed", String(message.model.foldingEnabled));
   graphNote.textContent = message.model.truncated ? "Node limit reached" : "";
-  status.textContent = `${String(message.model.ruleCount)} rules · ${String(message.model.references)} references · ${String(message.model.diagnostics)} diagnostics`;
+  const conflictCount =
+    (message.model.conflictReport?.totals.shiftReduce ?? 0) +
+    (message.model.conflictReport?.totals.reduceReduce ?? 0);
+  status.textContent = `${String(message.model.ruleCount)} rules · ${String(message.model.references)} references · ${String(message.model.diagnostics)} diagnostics · ${String(conflictCount)} conflicts`;
 });
 
 post({ type: "ready" });

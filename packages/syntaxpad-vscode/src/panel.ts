@@ -8,6 +8,7 @@ import {
   type SourceRange,
 } from "@syntaxpad/core";
 import type { DependencyMode } from "@syntaxpad/viz";
+import type { ConflictReport } from "@syntaxpad/tools";
 import { randomBytes } from "node:crypto";
 import * as vscode from "vscode";
 
@@ -17,6 +18,12 @@ import { createGrammarViewModel } from "./view-model.js";
 interface CachedGrammar {
   readonly document: GrammarDocument;
   readonly model: GrammarModel;
+  readonly uri: string;
+  readonly version: number;
+}
+
+interface VersionedConflictReport {
+  readonly report: ConflictReport;
   readonly uri: string;
   readonly version: number;
 }
@@ -38,6 +45,7 @@ const nonce = (): string => randomBytes(18).toString("base64url");
 
 export class SyntaxPadPanel implements vscode.Disposable {
   private static current: SyntaxPadPanel | undefined;
+  private static latestConflicts: VersionedConflictReport | undefined;
 
   private cache: CachedGrammar | undefined;
   private readonly disposables: vscode.Disposable[] = [];
@@ -115,6 +123,15 @@ export class SyntaxPadPanel implements vscode.Disposable {
     await SyntaxPadPanel.current.update();
   }
 
+  public static async publishConflicts(
+    uri: vscode.Uri,
+    version: number,
+    report: ConflictReport,
+  ): Promise<void> {
+    SyntaxPadPanel.latestConflicts = { report, uri: uri.toString(), version };
+    await SyntaxPadPanel.current?.render();
+  }
+
   public dispose(): void {
     if (SyntaxPadPanel.current === this) {
       SyntaxPadPanel.current = undefined;
@@ -189,6 +206,11 @@ export class SyntaxPadPanel implements vscode.Disposable {
     if (this.cache === undefined) {
       return;
     }
+    const conflicts = SyntaxPadPanel.latestConflicts;
+    const currentConflicts =
+      conflicts?.uri === this.cache.uri && conflicts.version === this.cache.version
+        ? conflicts.report
+        : undefined;
     const model = createGrammarViewModel({
       document: this.cache.document,
       model: this.cache.model,
@@ -197,6 +219,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
         foldRecursion: this.foldRecursion,
         graphMode: this.graphMode,
         query: this.query,
+        ...(currentConflicts === undefined ? {} : { conflictReport: currentConflicts }),
         ...(this.selectedRuleName === undefined ? {} : { selectedRuleName: this.selectedRuleName }),
       },
       uri: this.cache.uri,
@@ -311,6 +334,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
     <label>View <select id="graph-mode"><option value="neighborhood">Neighborhood</option><option value="reachable">Reachable</option><option value="all">Whole graph</option></select></label>
     <label>Distance <select id="distance"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>
     <button id="fold-toggle" type="button" aria-pressed="true">Fold recursion</button>
+    <button id="run-conflicts" type="button">Run conflicts</button>
   </header>
   <main>
     <section class="pane railroad-pane" aria-labelledby="railroad-title">
@@ -321,6 +345,10 @@ export class SyntaxPadPanel implements vscode.Disposable {
     <section class="pane dependency-pane" aria-labelledby="dependency-title">
       <div class="pane-heading"><h1 id="dependency-title">Dependencies</h1><span id="graph-note"></span></div>
       <div id="dependency" class="diagram" tabindex="0"></div>
+    </section>
+    <section class="pane conflict-pane" aria-labelledby="conflict-title">
+      <div class="pane-heading"><h1 id="conflict-title">Conflicts</h1><span id="conflict-summary">Not run</span></div>
+      <div id="conflicts" class="conflict-list"><p>Run conflict analysis to inspect parser-generator results.</p></div>
     </section>
   </main>
   <footer id="status" role="status" aria-live="polite">Waiting for a grammar…</footer>

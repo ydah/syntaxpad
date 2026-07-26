@@ -188,11 +188,16 @@ const toLane = (rule: RuleNode, index: number): RailroadLane => {
 
 export const createRailroadView = (
   rule: RuleNode,
-  options: { readonly foldRecursion?: boolean } = {},
+  options: { readonly conflict?: boolean; readonly foldRecursion?: boolean } = {},
 ): RailroadView => {
   const lanes = rule.alternatives.map((_, index) => toLane(rule, index));
   const folded = options.foldRecursion === false ? undefined : detectFoldedRecursion(rule);
-  const base = { lanes, name: rule.name, ruleId: rule.id };
+  const base = {
+    lanes,
+    name: rule.name,
+    ruleId: rule.id,
+    ...(options.conflict === true ? { conflict: true } : {}),
+  };
   return folded === undefined ? base : { ...base, folded };
 };
 

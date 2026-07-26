@@ -23,6 +23,7 @@ export interface FoldedRecursion {
 }
 
 export interface RailroadView {
+  readonly conflict?: boolean;
   readonly folded?: FoldedRecursion;
   readonly lanes: readonly RailroadLane[];
   readonly name: string;
@@ -30,6 +31,7 @@ export interface RailroadView {
 }
 
 export interface SvgRender {
+  readonly conflict?: boolean;
   readonly folded: boolean;
   readonly height: number;
   readonly svg: string;

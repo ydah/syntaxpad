@@ -1,4 +1,5 @@
 import type { GrammarDocument, GrammarModel } from "@syntaxpad/core";
+import type { ConflictReport } from "@syntaxpad/tools";
 import {
   createDependencyGraph,
   createRailroadView,
@@ -10,7 +11,7 @@ import type { DependencyMode } from "@syntaxpad/viz";
 import type { GrammarViewModel } from "./protocol.js";
 
 export interface ViewState {
-  readonly conflictRules?: ReadonlySet<string>;
+  readonly conflictReport?: ConflictReport;
   readonly distance: number;
   readonly foldRecursion: boolean;
   readonly graphMode: DependencyMode;
@@ -33,8 +34,12 @@ export const createGrammarViewModel = (options: {
     return undefined;
   }
 
+  const conflictRules = new Set(
+    options.state.conflictReport?.conflicts.flatMap((conflict) => conflict.ruleNames) ?? [],
+  );
   const railroad = renderRailroadSvg(
     createRailroadView(selectedRule, {
+      conflict: conflictRules.has(selectedRule.name),
       foldRecursion: options.state.foldRecursion,
     }),
   );
@@ -43,9 +48,7 @@ export const createGrammarViewModel = (options: {
     mode: options.state.graphMode,
     query: options.state.query,
     selected: selectedRule.name,
-    ...(options.state.conflictRules === undefined
-      ? {}
-      : { conflictRules: options.state.conflictRules }),
+    conflictRules,
   });
   const dependency = renderDependencySvg(graph);
   return {
@@ -58,6 +61,36 @@ export const createGrammarViewModel = (options: {
           .trim()
           .slice(0, 80) || "empty",
     })),
+    ...(options.state.conflictReport === undefined
+      ? {}
+      : {
+          conflictReport: {
+            conflicts: options.state.conflictReport.conflicts.map((conflictItem) => ({
+              ...conflictItem,
+              ruleNames: [...conflictItem.ruleNames],
+              targets: conflictItem.ruleNames.flatMap((ruleName) => {
+                const rule = options.document.rules.find(
+                  (candidate) => candidate.name === ruleName,
+                );
+                return rule === undefined
+                  ? []
+                  : [
+                      {
+                        end: rule.nameRange.end,
+                        ruleName,
+                        start: rule.nameRange.start,
+                      },
+                    ];
+              }),
+            })),
+            detail: options.state.conflictReport.detail,
+            format: options.state.conflictReport.format,
+            messages: [...options.state.conflictReport.messages],
+            tool: options.state.conflictReport.tool,
+            totals: options.state.conflictReport.totals,
+            truncated: options.state.conflictReport.truncated,
+          },
+        }),
     dependencySvg: dependency.svg,
     diagnostics: options.model.diagnostics.length,
     distance: options.state.distance,

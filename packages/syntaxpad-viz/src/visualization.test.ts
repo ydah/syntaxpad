@@ -106,6 +106,20 @@ start:
       "{item}+", // Literal separators are intentionally omitted from the compact argument labels.
     ]);
   });
+
+  it("marks a conflicted rule visibly and accessibly", () => {
+    const rule = ruleNamed(
+      `%%
+expression: expression '+' expression | NUMBER ;
+%%`,
+      "expression",
+    );
+    const rendered = renderRailroadSvg(createRailroadView(rule, { conflict: true }));
+
+    expect(rendered.conflict).toBe(true);
+    expect(rendered.svg).toContain("railroad-conflict-badge");
+    expect(rendered.svg).toContain("parser conflict");
+  });
 });
 
 describe("dependency graph", () => {
@@ -145,5 +159,16 @@ unused: TOKEN ;
     expect(rendered.svg).toContain('data-symbol="missing"');
     expect(rendered.svg).toContain("undefined");
     expect(rendered.svg).toContain("marker-end=");
+  });
+
+  it("marks conflict rules independently of other diagnostics", () => {
+    const document = parseGrammar(source);
+    const view = createDependencyGraph(document, analyzeGrammar(document), {
+      conflictRules: new Set(["branch"]),
+      mode: "all",
+    });
+
+    expect(view.nodes.find((node) => node.id === "branch")?.statuses).toContain("conflict");
+    expect(renderDependencySvg(view).svg).toContain("status-conflict");
   });
 });

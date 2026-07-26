@@ -4,6 +4,7 @@ import type { LanguageClientOptions, ServerOptions } from "vscode-languageclient
 import * as vscode from "vscode";
 
 import { registerRefactoringCommands } from "./commands.js";
+import { registerConflictAnalysis } from "./external-tools.js";
 import { SyntaxPadPanel } from "./panel.js";
 
 let languageClient: LanguageClient | undefined;
@@ -55,6 +56,7 @@ const foldActions = async (
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   registerRefactoringCommands(context);
+  registerConflictAnalysis(context);
   context.subscriptions.push(
     vscode.commands.registerCommand("syntaxpad.openView", async () => {
       await SyntaxPadPanel.show(context.extensionUri);

@@ -96,6 +96,18 @@ export const renderRailroadSvg = (view: RailroadView): SvgRender => {
     view.folded === undefined
       ? ""
       : '<g class="railroad-fold-badge" aria-label="Folded recursion"><rect x="12" y="8" width="116" height="22" rx="11"/><text x="70" y="23" text-anchor="middle">Folded recursion</text></g>';
-  const svg = `<svg class="syntaxpad-railroad" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${String(width)} ${String(height)}" role="img" aria-label="Railroad diagram for ${escapeXml(view.name)}">${badge}${body}</svg>`;
-  return { folded: view.folded !== undefined, height, svg, width };
+  const conflictBadge =
+    view.conflict === true
+      ? `<g class="railroad-conflict-badge" aria-label="Rule involved in a parser conflict"><rect x="${String(width - 104)}" y="8" width="92" height="22" rx="11"/><text x="${String(width - 58)}" y="23" text-anchor="middle">Conflict</text></g>`
+      : "";
+  const classes = `syntaxpad-railroad${view.conflict === true ? " has-conflict" : ""}`;
+  const conflictLabel = view.conflict === true ? ", parser conflict" : "";
+  const svg = `<svg class="${classes}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${String(width)} ${String(height)}" role="img" aria-label="Railroad diagram for ${escapeXml(view.name)}${conflictLabel}">${badge}${conflictBadge}${body}</svg>`;
+  return {
+    folded: view.folded !== undefined,
+    height,
+    svg,
+    width,
+    ...(view.conflict === true ? { conflict: true } : {}),
+  };
 };
