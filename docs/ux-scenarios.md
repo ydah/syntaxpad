@@ -2,6 +2,8 @@
 
 Automated latency is recorded by `npm run benchmark`; human task time is recorded in this file's
 table during each milestone review. A milestone is not accepted until its required scenarios pass.
+Live cursor, navigation, and refactoring latency is recorded locally in the **SyntaxPad Metrics**
+output channel. Diagnostics latency is written to the SyntaxPad language-server output.
 
 ## Interaction budgets
 
@@ -57,13 +59,14 @@ neighborhood to distance 2.
 
 ## Review record
 
-| Milestone | Date    | Reviewer | Scenarios         | Result  | Notes                     |
-| --------- | ------- | -------- | ----------------- | ------- | ------------------------- |
-| M0        | pending | pending  | automated budgets | pending | Run `npm run benchmark`   |
-| M1        | pending | user     | S1, S5            | pending | Human validation required |
-| M2        | pending | user     | S3                | pending | Human validation required |
-| M3        | pending | user     | S4                | pending | Human validation required |
-| M4        | pending | user     | S2                | pending | Human validation required |
+| Milestone | Date       | Reviewer  | Scenarios         | Result  | Notes                                |
+| --------- | ---------- | --------- | ----------------- | ------- | ------------------------------------ |
+| M0        | 2026-07-26 | automated | automated budgets | pass    | 10k p95 24.49 ms; CRuby p95 17.01 ms |
+| M1        | pending    | user      | S1, S5            | pending | Human validation required            |
+| M2        | pending    | user      | S3                | pending | Human validation required            |
+| M3        | pending    | user      | S4                | pending | Human validation required            |
+| M4        | pending    | user      | S2                | pending | Human validation required            |
+| M5        | 2026-07-26 | automated | technical release | pass    | 49 tests; VSIX isolated install      |
 
 If one scenario fails three consecutive reviews, create an ADR reconsidering the interaction
 approach before continuing.

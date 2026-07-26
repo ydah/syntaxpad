@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "package": "npm run check && vsce package --cwd packages/syntaxpad-vscode --out ../../syntaxpad.vsix",
+    "package": "npm run check && node scripts/package.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b --pretty false"

@@ -8,7 +8,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "vscode": "^1.91.0"
+    "vscode": "^1.125.0"
   },
   "categories": [
     "Programming Languages",
@@ -205,10 +205,14 @@
     "@types/vscode": "1.125.0"
   },
   "files": [
-    "dist/**",
+    "dist/extension.cjs",
+    "dist/server.cjs",
+    "dist/webview.css",
+    "dist/webview.js",
     "language-configuration.json",
     "syntaxes/**",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ]
 }

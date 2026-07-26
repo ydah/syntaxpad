@@ -141,7 +141,10 @@ and toggle prevent the abstraction from being mistaken for source.
 
 The dependency view requests a breadth-first neighborhood (default distance 1), reachable set, or
 explicit whole graph. Dagre lays out the already-filtered graph. Nodes include text/icon status for
-unused, undefined, conflict, and unreachable states; color is supplementary.
+unused, undefined, conflict, and unreachable states; color is supplementary. A non-empty search that
+matches a terminal temporarily adds that token and every using rule to the filtered graph; terminals
+never inflate the default nonterminal-only view. Degree classes and start-distance attributes
+support visual emphasis and accessible labels.
 
 ## 8. Tool adapters
 
@@ -182,6 +185,11 @@ The first implementation is linear scanning plus set/map derivation. Documents c
 version. Visualization receives only the selected rule or filtered graph; no whole-graph layout is
 done on keystrokes. If p95 parsing exceeds 300 ms on the reference machine, the parser boundary
 permits Tree-sitter or Rust/Wasm without LSP/UI changes.
+
+The Webview acknowledges cursor renders, and diagram navigation is timed through completion in the
+extension host. Those values and WorkspaceEdit application time are written only to the local
+**SyntaxPad Metrics** output channel. Diagnostic publication logs its debounce-inclusive duration
+through the language-server connection.
 
 ## 11. Errors and partial parsing
 
