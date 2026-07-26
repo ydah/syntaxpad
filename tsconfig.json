@@ -4,6 +4,7 @@
     { "path": "packages/syntaxpad-core" },
     { "path": "packages/syntaxpad-viz" },
     { "path": "packages/syntaxpad-lsp" },
+    { "path": "packages/syntaxpad-tools" },
     { "path": "packages/syntaxpad-vscode" }
   ]
 }

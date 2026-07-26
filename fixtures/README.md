@@ -2,6 +2,9 @@
 
 Small and medium fixtures are original test data under the repository MIT license.
 
+`small/ambiguous.y` intentionally contains one shift/reduce conflict for adapter and navigation
+demos.
+
 Large upstream grammars are fetched into ignored `fixtures/external/`:
 
 ```sh

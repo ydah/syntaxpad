@@ -32,7 +32,9 @@
       "description": "Grammar analysis remains available. External Bison and Lrama commands are disabled.",
       "restrictedConfigurations": [
         "syntaxpad.tool.executable",
-        "syntaxpad.tool.arguments"
+        "syntaxpad.tool.arguments",
+        "syntaxpad.tool.maxOutputKiB",
+        "syntaxpad.tool.timeoutMs"
       ]
     },
     "virtualWorkspaces": {
@@ -129,6 +131,22 @@
           "default": [],
           "scope": "resource",
           "description": "Additional argument strings passed without a shell."
+        },
+        "syntaxpad.tool.timeoutMs": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 120000,
+          "default": 10000,
+          "scope": "resource",
+          "description": "Maximum parser-generator runtime in milliseconds."
+        },
+        "syntaxpad.tool.maxOutputKiB": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 16384,
+          "default": 1024,
+          "scope": "resource",
+          "description": "Maximum captured stdout and stderr size in KiB."
         }
       }
     },
@@ -178,8 +196,8 @@
   },
   "dependencies": {
     "@syntaxpad/core": "0.1.0",
+    "@syntaxpad/tools": "0.1.0",
     "@syntaxpad/viz": "0.1.0",
-    "fast-xml-parser": "5.10.1",
     "vscode-languageclient": "10.1.0",
     "zod": "4.4.3"
   },

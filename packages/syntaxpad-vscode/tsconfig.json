@@ -8,5 +8,9 @@
     "types": ["node", "vscode"]
   },
   "include": ["src/**/*.ts"],
-  "references": [{ "path": "../syntaxpad-core" }, { "path": "../syntaxpad-viz" }]
+  "references": [
+    { "path": "../syntaxpad-core" },
+    { "path": "../syntaxpad-tools" },
+    { "path": "../syntaxpad-viz" }
+  ]
 }

@@ -78,6 +78,12 @@ describe("parseGrammar", () => {
     });
   });
 
+  it("round-trips the ambiguous conflict-analysis fixture", async () => {
+    const source = await fixture("small/ambiguous.y");
+
+    expect(printGrammar(parseGrammar(source))).toBe(source);
+  });
+
   it("recovers after an unterminated action at a rule semicolon", () => {
     const source = `%token A B
 %%
