@@ -3,6 +3,7 @@ import { LanguageClient, TransportKind } from "vscode-languageclient/node";
 import type { LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
 import * as vscode from "vscode";
 
+import { registerRefactoringCommands } from "./commands.js";
 import { SyntaxPadPanel } from "./panel.js";
 
 let languageClient: LanguageClient | undefined;
@@ -53,6 +54,7 @@ const foldActions = async (
 };
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  registerRefactoringCommands(context);
   context.subscriptions.push(
     vscode.commands.registerCommand("syntaxpad.openView", async () => {
       await SyntaxPadPanel.show(context.extensionUri);

@@ -49,6 +49,15 @@ export const createGrammarViewModel = (options: {
   });
   const dependency = renderDependencySvg(graph);
   return {
+    alternatives: selectedRule.alternatives.map((alternative) => ({
+      index: alternative.index,
+      label:
+        options.document.source
+          .slice(alternative.range.start, alternative.range.end)
+          .replace(/\s+/gu, " ")
+          .trim()
+          .slice(0, 80) || "empty",
+    })),
     dependencySvg: dependency.svg,
     diagnostics: options.model.diagnostics.length,
     distance: options.state.distance,

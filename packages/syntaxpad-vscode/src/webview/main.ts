@@ -26,11 +26,13 @@ const distance = requiredElement("#distance", HTMLSelectElement);
 const foldToggle = requiredElement("#fold-toggle", HTMLButtonElement);
 const railroad = requiredElement("#railroad", HTMLDivElement);
 const dependency = requiredElement("#dependency", HTMLDivElement);
+const alternativeControls = requiredElement("#alternative-controls", HTMLDivElement);
 const ruleName = requiredElement("#rule-name", HTMLSpanElement);
 const graphNote = requiredElement("#graph-note", HTMLSpanElement);
 const status = requiredElement("#status", HTMLElement);
 let currentModel: GrammarViewModel | undefined;
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
+let draggedAlternative: number | undefined;
 
 const post = (message: ViewMessage): void => {
   vscode.postMessage(message);
@@ -50,6 +52,65 @@ const updateRuleOptions = (model: GrammarViewModel): void => {
     ruleSelect.dataset.signature = signature;
   }
   ruleSelect.value = model.selectedRuleName;
+};
+
+const moveAlternative = (from: number, to: number): void => {
+  if (
+    currentModel === undefined ||
+    from === to ||
+    to < 0 ||
+    to >= currentModel.alternatives.length
+  ) {
+    return;
+  }
+  post({
+    from,
+    ruleId: currentModel.selectedRuleId,
+    to,
+    type: "moveAlternative",
+  });
+};
+
+const updateAlternativeControls = (model: GrammarViewModel): void => {
+  alternativeControls.replaceChildren(
+    ...model.alternatives.map((alternative) => {
+      const row = document.createElement("div");
+      row.className = "alternative-row";
+      row.draggable = true;
+      row.dataset.index = String(alternative.index);
+      const label = document.createElement("span");
+      label.textContent = `${String(alternative.index + 1)}. ${alternative.label}`;
+      const up = document.createElement("button");
+      up.type = "button";
+      up.textContent = "Move up";
+      up.disabled = alternative.index === 0;
+      up.addEventListener("click", () => {
+        moveAlternative(alternative.index, alternative.index - 1);
+      });
+      const down = document.createElement("button");
+      down.type = "button";
+      down.textContent = "Move down";
+      down.disabled = alternative.index === model.alternatives.length - 1;
+      down.addEventListener("click", () => {
+        moveAlternative(alternative.index, alternative.index + 1);
+      });
+      row.addEventListener("dragstart", () => {
+        draggedAlternative = alternative.index;
+      });
+      row.addEventListener("dragover", (event) => {
+        event.preventDefault();
+      });
+      row.addEventListener("drop", (event) => {
+        event.preventDefault();
+        if (draggedAlternative !== undefined) {
+          moveAlternative(draggedAlternative, alternative.index);
+        }
+        draggedAlternative = undefined;
+      });
+      row.append(label, up, down);
+      return row;
+    }),
+  );
 };
 
 const activateRangedElement = (element: Element, preferDefinition: boolean): void => {
@@ -157,6 +218,7 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
 
   currentModel = message.model;
   updateRuleOptions(message.model);
+  updateAlternativeControls(message.model);
   railroad.innerHTML = message.model.railroadSvg;
   dependency.innerHTML = message.model.dependencySvg;
   ruleName.textContent = message.model.selectedRuleName;

@@ -118,6 +118,48 @@ main {
   min-width: 100%;
 }
 
+.alternative-controls {
+  border-top: 1px solid var(--vscode-editorWidget-border);
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px 12px;
+}
+
+.alternative-row {
+  align-items: center;
+  background: var(--vscode-list-inactiveSelectionBackground);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 5px;
+}
+
+.alternative-row span {
+  font-family: var(--vscode-editor-font-family, "JetBrains Mono", monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alternative-row button {
+  background: var(--vscode-button-secondaryBackground);
+  border: 0;
+  border-radius: 3px;
+  color: var(--vscode-button-secondaryForeground);
+  cursor: pointer;
+  min-height: 28px;
+  padding: 4px 7px;
+}
+
+.alternative-row button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
 .railroad-track,
 .railroad-loop,
 .dependency-edge {

@@ -275,6 +275,13 @@ export class SyntaxPadPanel implements vscode.Disposable {
         await this.render();
         return;
       case "moveAlternative":
+        await vscode.commands.executeCommand("syntaxpad.reorderAlternatives", {
+          from: message.from,
+          ruleId: message.ruleId,
+          to: message.to,
+          uri: this.cache?.uri ?? "",
+        });
+        return;
       case "runConflicts":
         await vscode.commands.executeCommand(`syntaxpad.${message.type}`);
     }
@@ -309,6 +316,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
     <section class="pane railroad-pane" aria-labelledby="railroad-title">
       <div class="pane-heading"><h1 id="railroad-title">Railroad</h1><span id="rule-name"></span></div>
       <div id="railroad" class="diagram" tabindex="0"></div>
+      <div id="alternative-controls" class="alternative-controls" aria-label="Reorder alternatives"></div>
     </section>
     <section class="pane dependency-pane" aria-labelledby="dependency-title">
       <div class="pane-heading"><h1 id="dependency-title">Dependencies</h1><span id="graph-note"></span></div>

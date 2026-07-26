@@ -43,6 +43,12 @@ const ruleOptionSchema = z.strictObject({
 });
 
 export const grammarViewModelSchema = z.strictObject({
+  alternatives: z.array(
+    z.strictObject({
+      index: z.number().int().nonnegative(),
+      label: z.string(),
+    }),
+  ),
   dependencySvg: z.string(),
   diagnostics: z.number().int().nonnegative(),
   distance: z.number().int().nonnegative(),

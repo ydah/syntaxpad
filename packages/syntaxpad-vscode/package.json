@@ -73,6 +73,10 @@
       {
         "command": "syntaxpad.foldActions",
         "title": "SyntaxPad: Fold Action Blocks"
+      },
+      {
+        "command": "syntaxpad.reorderAlternatives",
+        "title": "SyntaxPad: Reorder Alternatives"
       }
     ],
     "configuration": {
