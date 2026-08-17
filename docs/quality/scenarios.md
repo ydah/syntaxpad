@@ -17,23 +17,29 @@ three highest-use dependencies.
 
 ### S2 — Add an alternative and locate a conflict
 
-Add the provided `expr '-' expr` alternative, run the configured generator, select the new
-shift/reduce conflict, and navigate to its rule.
+Use the conflict-free disposable grammar and exact steps in the
+[S2 conflict procedure](verification.md#s2-conflict-procedure). Add the provided `expr '-' expr`
+alternative, run the configured generator, select the new shift/reduce conflict, and navigate to its
+rule.
 
 - Target: <= 60 s, <= 10 actions.
 - Gate: Conflict-analysis acceptance and later releases.
 
 ### S3 — Rename a nonterminal safely
 
-Rename `argument_list` to `call_arguments`, including `$argument_list`, `$[argument_list]`, and
-`@argument_list`, then undo once.
+Use the disposable grammar and exact steps in the
+[S3 rename procedure](verification.md#s3-rename-procedure). Rename `argument_list` to
+`call_arguments`, including its declaration, definition, RHS uses, `$argument_list`,
+`$[argument_list]`, and `@argument_list`, then undo once.
 
 - Target: <= 30 s, <= 5 actions, zero unrelated changed lines.
 - Gate: Editing-assistance acceptance and later releases.
 
 ### S4 — Extract a repeated sequence
 
-Select `identifier ',' expression`, extract `named_argument`, and inspect the conflict-check
+Use the safe and cross-boundary cases in the
+[S4 extraction procedure](verification.md#s4-extraction-procedure). Select
+`identifier ',' expression`, extract `named_argument`, and inspect the conflict-check
 recommendation.
 
 - Target: <= 60 s, <= 8 actions; invalid cross-boundary reference fixture must be rejected before an

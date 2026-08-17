@@ -65,58 +65,158 @@ undefined/unused status rendering.
    editor, and verify the preference.
 8. Switch `syntaxpad.dialect` among `yacc`, `bison`, and `lrama`. Verify completion and `%type`
    diagnostics follow the profile while unknown directives remain preserved.
-9. Execute S3 from [scenarios.md](scenarios.md).
+9. Run the reproducible [S3 rename procedure](#s3-rename-procedure).
 
 Relevant automated coverage includes completion, hover, definition and reference lookup,
 action-reference diagnostics, profile-sensitive `%type`, rename patch generation, and action folding
 ranges.
 
+### S3 rename procedure
+
+Save the following disposable grammar as a `.y` file. It places `argument_list` in a `%type`
+declaration, a rule definition, RHS positions, and the three named action-reference forms required
+by S3.
+
+```yacc
+%locations
+%token IDENTIFIER
+%type <node> call argument_list
+%%
+call:
+  IDENTIFIER '(' argument_list ')'
+    { use($argument_list); use($[argument_list]); locate(@argument_list); }
+;
+argument_list:
+  %empty
+| argument_list ',' IDENTIFIER
+;
+%%
+```
+
+1. Set `syntaxpad.dialect` to `bison`, open the file, and place the cursor on the `argument_list`
+   rule name.
+2. Press F2, enter `call_arguments`, and apply the rename.
+3. Inspect the single workspace edit. The `%type` declaration, definition, both RHS occurrences,
+   `$argument_list`, `$[argument_list]`, and `@argument_list` must all become `call_arguments`; no
+   other line may change.
+4. Undo once and verify the original text is restored.
+
+Record whether the expected edit occurred in [records.md](records.md). Do not record a pass when any
+target remains unchanged or an unrelated range changes.
+
 ## Structural refactoring
 
-1. Open a disposable grammar containing `A B C { $$ = $3; }` in one rule.
-2. Select `A B`, run **SyntaxPad: Extract Rule**, and enter `prefix`. Verify the caller becomes
-   `prefix C { $$ = $2; }`, the new rule follows the source style, and one Undo restores the file.
-3. Repeat with `{ $$ = $1; }`. Verify extraction is rejected before an edit because the reference
-   crosses the selection boundary.
-4. Select one symbol and run **SyntaxPad: Wrap in Option** under the Lrama profile. Under Bison or
+1. Run the reproducible [S4 extraction procedure](#s4-extraction-procedure).
+2. Select one symbol and run **SyntaxPad: Wrap in Option** under the Lrama profile. Under Bison or
    Yacc, enter a helper name and verify the generated empty/non-empty helper rule.
-5. Inline a one-alternative rule. If it owns a final action, inspect and accept the warning; verify
+3. Inline a one-alternative rule. If it owns a final action, inspect and accept the warning; verify
    caller `$n` values are renumbered.
-6. Run **SyntaxPad: Add Alternative** and verify inferred indentation and `|` placement.
-7. Open the grammar view. Drag alternatives in the list, then repeat with **Move up/down** using the
+4. Run **SyntaxPad: Add Alternative** and verify inferred indentation and `|` placement.
+5. Open the grammar view. Drag alternatives in the list, then repeat with **Move up/down** using the
    keyboard. Verify only the rule body changes.
-8. Accept or dismiss the post-transform conflict-check prompt. Verify no external process starts
+6. Accept or dismiss the post-transform conflict-check prompt. Verify no external process starts
    without the separate analysis command and trust flow.
-9. Execute S4 from [scenarios.md](scenarios.md).
 
 Relevant golden coverage includes `$n` remapping, boundary rejection, action-preserving inline,
 style-aware helper generation, reordering, patch-overlap rejection, reparsing postconditions, and
 single-edit previews.
 
+### S4 extraction procedure
+
+Save this disposable grammar as a `.y` file. It provides the same repeated sequence in one safe
+caller and one caller whose action crosses the extraction boundary.
+
+```yacc
+%token IDENTIFIER NUMBER
+%%
+valid_call:
+  identifier ',' expression ')' { use($4); }
+;
+invalid_call:
+  identifier ',' expression { use($3); }
+;
+identifier:
+  IDENTIFIER
+;
+expression:
+  NUMBER
+;
+%%
+```
+
+1. In `valid_call`, select exactly `identifier ',' expression`, run **SyntaxPad: Extract Rule**, and
+   enter `named_argument`.
+2. Dismiss the conflict-check recommendation without running the external tool. Verify the caller is
+   `named_argument ')' { use($2); }` and the new `named_argument` rule contains the selected
+   sequence.
+3. In `invalid_call`, select exactly the same sequence, run **SyntaxPad: Extract Rule**, and enter
+   `rejected_argument`.
+4. Verify the `$3` cross-boundary reference is rejected before an edit is applied. Do not treat the
+   scenario as passed if any text changes during this rejected operation.
+5. Undo once and verify the successful extraction from step 1 is undone and the original text is
+   restored.
+
+Record the observed preview, rejection, recommendation, and undo behavior in
+[records.md](records.md); this procedure states expected behavior only.
+
 ## Conflict analysis
 
-1. Open `fixtures/small/ambiguous.y`, then run **SyntaxPad: Open Grammar View**.
+1. Save the disposable [S2 grammar](#s2-conflict-procedure) as a `.y` file, open it, and run
+   **SyntaxPad: Open Grammar View**.
 2. Run **SyntaxPad: Run Conflict Analysis** in an untrusted workspace. Verify the command is
    disabled and no process starts.
 3. Trust the workspace and run it again. Inspect the confirmation: it must show the executable,
    generated arguments, user arguments, temporary input/output paths, and Bison text fallback.
    Cancel once and verify no process starts.
-4. Accept the confirmation. With Bison 3.x, verify the panel identifies `bison-xml`; with an older
-   Bison, verify the result remains usable through `bison-text`. The fixture should expose one
-   shift/reduce conflict.
-5. Verify `expression` is marked in both diagrams, an editor diagnostic appears on its definition,
-   and **Go to expression** in the conflict list selects that rule in the editor.
+4. Accept the confirmation. The unchanged S2 grammar must report zero conflicts. With Bison 3.x,
+   verify the panel identifies `bison-xml`; with an older Bison, verify the result remains usable
+   through `bison-text`.
+5. Follow the remaining [S2 conflict procedure](#s2-conflict-procedure). The added alternative must
+   produce one shift/reduce conflict mapped to `expr`.
 6. Set `syntaxpad.tool.kind` to `lrama` and configure a valid executable path. Run again and expand
    a counterexample when the installed Lrama supports it.
 7. Configure a nonexistent executable. Verify the failed analysis leaves the panel and grammar
    navigation usable.
 8. Change the tool arguments and rerun. Verify confirmation appears again for the new command
    signature.
-9. Execute S2 from [scenarios.md](scenarios.md).
 
 Relevant automated coverage includes Bison XML state/action normalization, Bison and Lrama text
 reports, counterexamples, counts-only degradation, malformed reports, bounded output, target
 mapping, and conflict-status rendering.
+
+### S2 conflict procedure
+
+Start from this conflict-free grammar:
+
+```yacc
+%token NUMBER
+%%
+expr:
+  NUMBER
+;
+%%
+```
+
+1. Complete conflict-analysis steps 1–4 above and confirm the baseline reports zero conflicts.
+2. Place the editor cursor inside `expr` and run **SyntaxPad: Add Alternative**. Dismiss the
+   immediate conflict-check recommendation because the generated alternative is not complete yet.
+3. Replace the generated `/* TODO */` alternative body with `expr '-' expr` and save the file. The
+   completed rule must read:
+
+   ```yacc
+   expr:
+     NUMBER
+   | expr '-' expr
+   ;
+   ```
+
+4. Run **SyntaxPad: Run Conflict Analysis** again. With Bison, the unresolved associativity must
+   produce exactly one shift/reduce conflict and no reduce/reduce conflict.
+5. Verify `expr` is marked in both diagrams, an editor diagnostic appears on its definition, and
+   **Go to expr** in the conflict list selects that rule in the editor.
+
+If the baseline already has a conflict, or the added alternative does not produce exactly the
+expected new conflict, record a failure in [records.md](records.md) instead of accepting S2.
 
 ## Release verification
 
