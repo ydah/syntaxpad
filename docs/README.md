@@ -25,8 +25,9 @@ not add dates or retain historical alternatives in these files.
 
 - [Architecture](spec/architecture.md)
 - [Grammar core](spec/core.md)
-- [Remaining design sections pending migration](design.md)
-- [UI specification](ui.md)
+- [Language server](spec/lsp.md)
+- [Visualization and grammar view](spec/visualization.md)
+- [Remaining external-tool and security sections pending migration](design.md)
 
 ## Decisions and research
 
