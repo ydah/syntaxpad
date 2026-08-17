@@ -19,7 +19,7 @@ Record positive and negative consequences, operational obligations, and compatib
 ## Evidence
 
 When citing a measurement, include its date, measured commit, and target, then link the matching
-entry in `quality/records.md`. State when no measured evidence applies.
+entry in the [quality records](../quality/records.md). State when no measured evidence applies.
 
 ## Reconsider when
 

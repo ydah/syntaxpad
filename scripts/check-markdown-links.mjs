@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { dirname, relative, resolve, sep } from "node:path";
 import process, { stderr, stdout } from "node:process";
 
 const repositoryRoot = execFileSync("git", ["rev-parse", "--show-toplevel"], {
@@ -92,7 +92,6 @@ const destinationFrom = (rawDestination) => {
 const isIgnoredDestination = (destination) =>
   /^(?:https?:|mailto:)/iu.test(destination) ||
   /^[a-z][a-z\d+.-]*:/iu.test(destination) ||
-  isAbsolute(destination) ||
   /^[a-z]:[\\/]/iu.test(destination) ||
   destination.startsWith("\\\\");
 
@@ -110,7 +109,9 @@ const checkDestination = (sourcePath, markdown, offset, rawDestination) => {
   const targetPath = decode(rawPath.split("?", 1)[0]);
   const sourceDirectory = dirname(resolve(repositoryRoot, sourcePath));
   const targetAbsolute = targetPath
-    ? resolve(sourceDirectory, targetPath)
+    ? targetPath.startsWith("/")
+      ? resolve(repositoryRoot, `.${targetPath}`)
+      : resolve(sourceDirectory, targetPath)
     : resolve(repositoryRoot, sourcePath);
   const targetRelative = relative(repositoryRoot, targetAbsolute).split(sep).join("/");
   const location = `${sourcePath}:${lineAt(markdown, offset)}`;

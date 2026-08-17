@@ -109,8 +109,10 @@ target remains unchanged or an unrelated range changes.
 1. Run the reproducible [S4 extraction procedure](#s4-extraction-procedure).
 2. Select one symbol and run **SyntaxPad: Wrap in Option** under the Lrama profile. Under Bison or
    Yacc, enter a helper name and verify the generated empty/non-empty helper rule.
-3. Inline a one-alternative rule. If it owns a final action, inspect and accept the warning; verify
-   caller `$n` values are renumbered.
+3. Inline a one-alternative rule that has exactly one occurrence in its caller. If it owns a final
+   action, inspect and accept the warning; verify caller `$n` values are renumbered. Do not use a
+   caller with repeated occurrences; that case is a documented
+   [core limitation](../spec/core.md#current-limitations).
 4. Run **SyntaxPad: Add Alternative** and verify inferred indentation and `|` placement.
 5. Open the grammar view. Drag alternatives in the list, then repeat with **Move up/down** using the
    keyboard. Verify only the rule body changes.

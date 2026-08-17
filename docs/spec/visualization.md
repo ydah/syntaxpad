@@ -7,10 +7,11 @@ controls and interaction handling.
 
 ## Railroad diagram
 
-Each grammar alternative is a lane. Terminals use rounded shapes, other symbols use rectangular
-shapes, actions use a compact `{...}` marker, and precedence and unknown items remain visible.
-Parameterized Lrama references use compact optional or repetition labels for recognized standard
-rules and retain their source range.
+Each grammar alternative is a lane. Quoted literals use rounded terminal shapes. Named symbols,
+including names declared with `%token`, currently use rectangular nonterminal shapes. Actions use a
+compact `{...}` marker, and precedence and unknown items remain visible. Parameterized Lrama
+references use compact optional or repetition labels for recognized standard rules and retain their
+source range.
 
 Every rendered element carries the core source range used for editor navigation. Parser conflicts
 add a labelled badge and conflict styling to an affected rule.
@@ -126,6 +127,7 @@ that a browser paint has completed.
 - The diagrams have scroll overflow but no pan/zoom controls, arrow-key item navigation, or separate
   navigable node list.
 - Action markers cannot be expanded or hidden independently.
+- Named token uses are not distinguished from nonterminals in railroad diagrams.
 - Assistive-technology behavior of focusable button groups nested inside an SVG with `role="img"`
   has not been verified across supported screen readers.
 - A model redraw replaces both SVG trees and alternative controls, so keyboard focus inside those

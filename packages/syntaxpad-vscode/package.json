@@ -1,7 +1,7 @@
 {
   "name": "syntaxpad",
   "displayName": "SyntaxPad",
-  "description": "Visualize and safely refactor Bison, Yacc, and Lrama grammars",
+  "description": "Visualize and refactor Bison, Yacc, and Lrama grammars",
   "version": "0.1.0",
   "private": true,
   "publisher": "syntaxpad",
