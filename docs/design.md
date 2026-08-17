@@ -183,8 +183,8 @@ Cursor-to-Webview messages are not debounced and do no parsing. They carry a rul
 M0 measures complete parse/model derivation for generated 10,000-line and fetched CRuby grammars.
 The first implementation is linear scanning plus set/map derivation. Documents cache by URI and
 version. Visualization receives only the selected rule or filtered graph; no whole-graph layout is
-done on keystrokes. If p95 parsing exceeds 300 ms on the reference machine, the parser boundary
-permits Tree-sitter or Rust/Wasm without LSP/UI changes.
+done on keystrokes. If p95 parsing exceeds the [core workload budget](quality/budgets.md), the
+parser boundary permits Tree-sitter or Rust/Wasm without LSP/UI changes.
 
 The Webview acknowledges cursor renders, and diagram navigation is timed through completion in the
 extension host. Those values and WorkspaceEdit application time are written only to the local

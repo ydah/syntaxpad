@@ -31,7 +31,7 @@ existing editor implementation.
   syntaxes, including Bison in integrations such as XML Calabash. Converting to EBNF would discard
   action positions and source identity, so it is suitable for export, not the live canonical view.
 - Lrama already advertises syntax diagrams. Calling its CLI would make ordinary navigation depend on
-  Ruby and cannot update within the 50 ms cursor budget.
+  Ruby and cannot update within the [cursor budget](quality/budgets.md).
 
 Decision: implement the small source-ranged SVG scene graph needed by SyntaxPad. Preserve a clean
 renderer boundary so a future export adapter can target `rr`.

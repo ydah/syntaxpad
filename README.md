@@ -68,4 +68,5 @@ The committed `fixtures/small/ambiguous.y` grammar is a quick conflict-analysis 
 uses XML when available and falls back to its verbose text report; Lrama uses its states report.
 
 The [documentation index](docs/README.md) is the single entry point for architecture, decisions,
-verification procedures, safety invariants, and remaining human UX gates.
+quality contracts, [verification procedures](docs/quality/verification.md), safety invariants, and
+the [remaining human UX gates](docs/quality/scenarios.md).

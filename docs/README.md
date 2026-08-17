@@ -10,8 +10,9 @@ point: add new documents here and link them from the appropriate section below.
   because it is published with the extension.
 - **Changing the implementation:** read the [design](design.md), then the specification and decision
   documents relevant to the package being changed.
-- **Reviewing quality or a release:** start with the [UX scenarios](ux-scenarios.md) and
-  [acceptance record](acceptance.md).
+- **Reviewing quality or a release:** start with the [quality budgets](quality/budgets.md),
+  [UX scenarios](quality/scenarios.md), and [verification procedures](quality/verification.md), then
+  append the outcome to the [quality records](quality/records.md).
 
 User-facing instructions stay in the extension README, with a concise overview in the project
 README. `docs/` is reserved for engineering specifications, decisions, quality contracts, and
@@ -44,13 +45,10 @@ Quality contracts change only when the acceptance criteria change. Records captu
 date and commit and are append-only; correct a mistaken observation with a later entry rather than
 silently replacing it.
 
-- [UX scenarios, interaction budgets, and review record](ux-scenarios.md)
-- [Acceptance record](acceptance.md)
-- Milestone verification records: [M0](demo-m0.md), [M1](demo-m1.md), [M2](demo-m2.md),
-  [M3](demo-m3.md), [M4](demo-m4.md), and [M5](demo-m5.md)
-
-Some existing files still mix a lasting contract or procedure with an observed result. Until those
-sections are separated, apply the lifecycle rule to each section rather than to the whole file.
+- [Performance budgets](quality/budgets.md)
+- [UX scenarios](quality/scenarios.md)
+- [Verification procedures](quality/verification.md)
+- [Quality and acceptance records](quality/records.md)
 
 ## Documentation lifecycle
 
