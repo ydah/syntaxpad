@@ -8,8 +8,8 @@ point: add new documents here and link them from the appropriate section below.
 - **Using SyntaxPad:** start with the [project README](../README.md). The
   [extension README](../packages/syntaxpad-vscode/README.md) is the canonical user-facing guide
   because it is published with the extension.
-- **Changing the implementation:** read the [design](design.md), then the specification and decision
-  documents relevant to the package being changed.
+- **Changing the implementation:** start with the [architecture](spec/architecture.md), then read
+  the specification and decision documents relevant to the package being changed.
 - **Reviewing quality or a release:** start with the [quality budgets](quality/budgets.md),
   [UX scenarios](quality/scenarios.md), and [verification procedures](quality/verification.md), then
   append the outcome to the [quality records](quality/records.md).
@@ -23,7 +23,9 @@ observed results so that published usage instructions do not diverge.
 Specifications describe the current implementation. Update them in the same change as the code; do
 not add dates or retain historical alternatives in these files.
 
-- [Architecture and core design](design.md)
+- [Architecture](spec/architecture.md)
+- [Grammar core](spec/core.md)
+- [Remaining design sections pending migration](design.md)
 - [UI specification](ui.md)
 
 ## Decisions and research

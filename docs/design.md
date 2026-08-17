@@ -32,8 +32,7 @@ Lrama additions are based on its
 - `%rule name(P, Q)` and `%rule %inline name(P)`
 - `%inline` declarations
 - nested instantiations such as `option(separated_nonempty_list(',', item))`
-- standard `option`, `ioption`, `list`, `nonempty_list`, `separated_list`,
-  `separated_nonempty_list`, `preceded`, `terminated`, and `delimited`
+- the [canonical set of supported standard rules](spec/core.md#lrama-standard-rules)
 - `%after-shift`, `%before-reduce`, `%after-reduce`, `%after-shift-error-token`, `%after-pop-stack`,
   `%error-token`, and `%no-stdlib`
 

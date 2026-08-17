@@ -15,9 +15,9 @@ evolve.
   owning basic editor behavior.
 - [Lrama](https://github.com/ruby/lrama) itself supports parameterized rules, `%inline`, and syntax
   diagram generation. Its renderer is generator-oriented rather than a live, source-ranged editor
-  view. Its [standard library](https://github.com/ruby/lrama/blob/master/lib/lrama/grammar/stdlib.y)
-  is the canonical list for `option`, `list`, `nonempty_list`, `separated_list`,
-  `separated_nonempty_list`, `preceded`, `terminated`, and `delimited`.
+  view. SyntaxPad's supported built-ins are maintained in the
+  [canonical standard-rule list](spec/core.md#lrama-standard-rules), derived from Lrama's upstream
+  standard library.
 
 Conclusion: reuse VS Code's editor/LSP surfaces and Lrama's terminology/pattern definitions, not an
 existing editor implementation.
