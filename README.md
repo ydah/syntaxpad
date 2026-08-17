@@ -67,6 +67,5 @@ npm run benchmark
 The committed `fixtures/small/ambiguous.y` grammar is a quick conflict-analysis smoke test. Bison
 uses XML when available and falls back to its verbose text report; Lrama uses its states report.
 
-The [design](docs/design.md), [milestone demos](docs/demo-m5.md), and
-[acceptance record](docs/acceptance.md) document the architecture, safety invariants, and remaining
-human UX gates.
+The [documentation index](docs/README.md) is the single entry point for architecture, decisions,
+verification procedures, safety invariants, and remaining human UX gates.

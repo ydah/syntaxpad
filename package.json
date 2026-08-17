@@ -13,8 +13,9 @@
   "scripts": {
     "benchmark": "npm run benchmark --workspace @syntaxpad/core",
     "build": "tsc -b && node scripts/build.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
+    "check": "npm run format:check && npm run docs:check && npm run lint && npm run typecheck && npm test && npm run build",
     "clean": "node scripts/clean.mjs",
+    "docs:check": "node scripts/check-markdown-links.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
