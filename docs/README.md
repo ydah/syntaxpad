@@ -34,14 +34,8 @@ not add dates or retain historical alternatives in these files.
 
 Accepted architecture decision records are historical snapshots. Do not rewrite their decision or
 rationale; supersede them with a new record. Research may be extended when new evidence affects a
-decision.
-
-- [Prior-art review](prior-art.md)
-- [ADR 0001: VS Code extension platform](adr/0001-vscode-platform.md)
-- [ADR 0002: Dedicated lossless parser before Tree-sitter](adr/0002-dedicated-lossless-parser.md)
-- [ADR 0003: TypeScript core](adr/0003-typescript-core.md)
-- [ADR 0004: Specialized railroad renderer and Dagre graph layout](adr/0004-layout-engines.md)
-- [ADR 0005: Conservative recursion folding](adr/0005-recursion-folding.md)
+decision. The [decision index and operating rules](decisions/README.md) are the single entry point
+for ADRs, their template, and prior-art evidence.
 
 ## Quality contracts and records
 

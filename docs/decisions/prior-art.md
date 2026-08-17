@@ -1,7 +1,8 @@
 # Prior art
 
 Reviewed 2026-07-26. Primary sources are linked so decisions can be revisited as upstream tools
-evolve.
+evolve. New findings are appended with their review date and primary source under the maintenance
+rules in the [decision index](README.md#evidence-and-reconsideration).
 
 ## Grammar editors and language support
 
@@ -16,8 +17,8 @@ evolve.
 - [Lrama](https://github.com/ruby/lrama) itself supports parameterized rules, `%inline`, and syntax
   diagram generation. Its renderer is generator-oriented rather than a live, source-ranged editor
   view. SyntaxPad's supported built-ins are maintained in the
-  [canonical standard-rule list](spec/core.md#lrama-standard-rules), derived from Lrama's upstream
-  standard library.
+  [canonical standard-rule list](../spec/core.md#lrama-standard-rules), derived from Lrama's
+  upstream standard library.
 
 Conclusion: reuse VS Code's editor/LSP surfaces and Lrama's terminology/pattern definitions, not an
 existing editor implementation.
@@ -31,7 +32,7 @@ existing editor implementation.
   syntaxes, including Bison in integrations such as XML Calabash. Converting to EBNF would discard
   action positions and source identity, so it is suitable for export, not the live canonical view.
 - Lrama already advertises syntax diagrams. Calling its CLI would make ordinary navigation depend on
-  Ruby and cannot update within the [cursor budget](quality/budgets.md).
+  Ruby and cannot update within the [cursor budget](../quality/budgets.md).
 
 Decision: implement the small source-ranged SVG scene graph needed by SyntaxPad. Preserve a clean
 renderer boundary so a future export adapter can target `rr`.
