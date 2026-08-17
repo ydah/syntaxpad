@@ -27,7 +27,8 @@ not add dates or retain historical alternatives in these files.
 - [Grammar core](spec/core.md)
 - [Language server](spec/lsp.md)
 - [Visualization and grammar view](spec/visualization.md)
-- [Remaining external-tool and security sections pending migration](design.md)
+- [External parser-generator integration](spec/external-tools.md)
+- [Security model](spec/security.md)
 
 ## Decisions and research
 

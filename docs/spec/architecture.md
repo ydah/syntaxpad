@@ -60,9 +60,8 @@ structural postcondition before the extension creates one `WorkspaceEdit`.
 
 The language server drops diagnostics calculated for an obsolete document version. External-tool
 failures are normalized as conflict-report states so grammar parsing and visualization can continue.
-The external process, report, and trust limitations are specified separately in the forthcoming
-external-tool and security specifications; until that split is complete, see the corresponding
-sections of [the original design](../design.md).
+The process and report lifecycle is specified in [external-tool integration](external-tools.md), and
+its trust boundary is specified in the [security model](security.md).
 
 ## Dependencies and licenses
 
