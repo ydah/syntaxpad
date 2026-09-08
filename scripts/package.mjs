@@ -7,15 +7,11 @@ const extensionDirectory = fileURLToPath(new URL("../packages/syntaxpad-vscode/"
 const executable = fileURLToPath(new URL("../node_modules/@vscode/vsce/vsce", import.meta.url));
 const output = fileURLToPath(new URL("../syntaxpad.vsix", import.meta.url));
 
-const child = spawn(
-  executable,
-  ["package", "--allow-missing-repository", "--no-dependencies", "--out", output],
-  {
-    cwd: extensionDirectory,
-    shell: false,
-    stdio: "inherit",
-  },
-);
+const child = spawn(executable, ["package", "--no-dependencies", "--out", output], {
+  cwd: extensionDirectory,
+  shell: false,
+  stdio: "inherit",
+});
 
 const result = await new Promise((resolve, reject) => {
   child.on("error", reject);

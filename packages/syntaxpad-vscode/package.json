@@ -6,6 +6,11 @@
   "private": true,
   "publisher": "syntaxpad",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ydah/syntaxpad.git",
+    "directory": "packages/syntaxpad-vscode"
+  },
   "type": "module",
   "engines": {
     "vscode": "^1.125.0"
