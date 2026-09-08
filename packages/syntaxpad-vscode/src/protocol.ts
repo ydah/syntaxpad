@@ -92,6 +92,7 @@ export const grammarViewModelSchema = z.strictObject({
   folded: z.boolean(),
   foldingEnabled: z.boolean(),
   graphMode: graphModeSchema,
+  query: z.string().max(200),
   references: z.number().int().nonnegative(),
   railroadSvg: z.string(),
   ruleCount: z.number().int().nonnegative(),

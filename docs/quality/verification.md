@@ -237,8 +237,10 @@ expected new conflict, record a failure in [records.md](records.md) instead of a
    [the canonical budgets](budgets.md).
 2. Run `scripts/fetch-corpus.sh` if needed. Open `fixtures/external/cruby-parse.y`, select
    `program`, and verify a railroad and distance-1 graph render without a parse error.
-3. Search the dependency panel for a terminal. Verify its node and every rule using it appear, with
-   degree and start-distance styling in the SVG.
+3. Search the dependency panel for `tIDENTIFIER`. Verify its node and every rule using it appear,
+   with degree and start-distance styling in the SVG. Select `cname`; the search must clear and the
+   distance control must become enabled. Changing distance from 1 to 2 must expand the neighborhood
+   from 3 nodes to 7.
 4. Set `syntaxpad.newRulePlacement` to `sectionEnd`, extract a rule, verify it follows the final
    existing rule, and undo once.
 5. Open **Output: SyntaxPad Metrics**. Move the cursor, activate a diagram node, and apply a

@@ -47,8 +47,9 @@ recommendation.
 
 ### S5 — Trace a token in a large grammar
 
-Load pinned CRuby `parse.y`, search for a token, show all referencing rules, and expand one
-neighborhood to distance 2.
+Load pinned CRuby `parse.y`, search for `tIDENTIFIER`, select the referencing rule `cname`, and
+expand its neighborhood from distance 1 to 2. Selecting the rule must clear the search
+automatically.
 
 - Target: <= 45 s, <= 8 actions; no whole-graph layout unless explicitly selected.
 - Gate: Viewer acceptance and later releases.

@@ -309,6 +309,7 @@ export class SyntaxPadPanel implements vscode.Disposable {
         await this.navigate(message);
         return;
       case "selectRule":
+        this.query = "";
         this.selectedRuleName = message.symbol;
         await this.render();
         return;

@@ -97,6 +97,7 @@ export const createGrammarViewModel = (options: {
     folded: railroad.folded,
     foldingEnabled: options.state.foldRecursion,
     graphMode: options.state.graphMode,
+    query: options.state.query,
     references: options.model.references.length,
     railroadSvg: railroad.svg,
     ruleCount: options.document.rules.length,

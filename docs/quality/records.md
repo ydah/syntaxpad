@@ -157,6 +157,13 @@ missed that the default Bison profile reported `separated_nonempty_list` as unde
 fixture. The S1 row in that record is not evidence that the default-profile workflow passed. A user
 review found the mismatch before release.
 
+## 2026-09-08 — correction to the objective S5 check
+
+The objective S5 script for commit `40d2b41` created a new neighborhood without the active search
+query. It therefore did not exercise the real UI transition where a token search continued to
+override Distance and the enabled control appeared to do nothing. A user review found the missing
+transition before release.
+
 ## 2026-09-08 — S1 and S2 procedure correction
 
 - **Date:** 2026-09-08
@@ -182,6 +189,10 @@ review found the mismatch before release.
 | Not performed | Not applicable | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Pending | Human validation required                                                                                   |
 | Not performed | Not applicable | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Pending | Human validation required                                                                                   |
 | 2026-09-08    | `845e8d9`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Fail    | Default Bison profile reported `separated_nonempty_list` as undefined; timing and actions were not recorded |
+| 2026-09-08    | `cd8edf6`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Partial | Functional behavior passed after the fixture correction; timing and actions were not recorded               |
+| 2026-09-08    | `cd8edf6`      | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Partial | Rename and Undo behavior passed; timing and actions were not recorded                                       |
+| 2026-09-08    | `cd8edf6`      | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Partial | Valid extraction, rejection, and Undo behavior passed; timing and actions were not recorded                 |
+| 2026-09-08    | `cd8edf6`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Distance had no visible effect while search remained active; timing and actions were not recorded           |
 
 Append one row for each completed scenario review. If the same scenario fails three consecutive
 reviews, create an ADR reconsidering the interaction approach before continuing.

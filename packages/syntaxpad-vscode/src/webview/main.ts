@@ -41,6 +41,11 @@ const post = (message: ViewMessage): void => {
   vscode.postMessage(message);
 };
 
+const selectRule = (symbol: string): void => {
+  search.value = "";
+  post({ symbol, type: "selectRule" });
+};
+
 const updateRuleOptions = (model: GrammarViewModel): void => {
   const signature = model.rules.map((rule) => rule.id).join("\u0000");
   if (ruleSelect.dataset.signature !== signature) {
@@ -219,8 +224,8 @@ const diagramInteraction = (event: MouseEvent | KeyboardEvent): void => {
   }
   event.preventDefault();
   const symbol = interactive.getAttribute("data-symbol");
-  if (symbol !== null) {
-    post({ symbol, type: "selectRule" });
+  if (symbol !== null && interactive.hasAttribute("data-start")) {
+    selectRule(symbol);
   }
   if (interactive.hasAttribute("data-start") && interactive.hasAttribute("data-end")) {
     activateRangedElement(interactive, interactive.classList.contains("railroad-element"));
@@ -233,7 +238,7 @@ dependency.addEventListener("click", diagramInteraction);
 dependency.addEventListener("keydown", diagramInteraction);
 
 ruleSelect.addEventListener("change", () => {
-  post({ symbol: ruleSelect.value, type: "selectRule" });
+  selectRule(ruleSelect.value);
 });
 
 foldToggle.addEventListener("click", () => {
@@ -310,8 +315,17 @@ window.addEventListener("message", (event: MessageEvent<unknown>) => {
   ruleName.textContent = message.model.selectedRuleName;
   graphMode.value = message.model.graphMode;
   distance.value = String(message.model.distance);
+  search.value = message.model.query;
+  const searchActive = message.model.query.trim().length > 0;
+  distance.disabled = searchActive || message.model.graphMode !== "neighborhood";
   foldToggle.setAttribute("aria-pressed", String(message.model.foldingEnabled));
-  graphNote.textContent = message.model.truncated ? "Node limit reached" : "";
+  graphNote.textContent = message.model.truncated
+    ? "Node limit reached"
+    : searchActive
+      ? "Select a rule to inspect its neighborhood"
+      : message.model.graphMode === "neighborhood"
+        ? ""
+        : "Distance applies to Neighborhood view";
   const conflictCount =
     (message.model.conflictReport?.totals.shiftReduce ?? 0) +
     (message.model.conflictReport?.totals.reduceReduce ?? 0);
