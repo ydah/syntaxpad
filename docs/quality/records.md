@@ -85,6 +85,30 @@ the audit found known Critical/High defects, including unsafe Wrap/Inline and re
 cases, stale or parallel external-report races, and soft timeout/process-tree termination. A passing
 automated suite and install therefore did not satisfy the release target.
 
+## 2026-09-08 — v0.1.0 release candidate
+
+- **Date:** 2026-09-08
+- **Commit:** `3f785bf`
+- **Target:** repeat the automated release checks after the adversarial fixes, audit the locked
+  dependencies, and verify the packaged extension in an isolated installation
+- **Result:** Technical checks passed; Marketplace publisher selection and human UX acceptance
+  remain pending
+
+| Observation                       | Result                                                                |
+| --------------------------------- | --------------------------------------------------------------------- |
+| Locked clean install              | Pass with normal TLS certificate verification; 433 packages installed |
+| Dependency audit                  | 0 known vulnerabilities                                               |
+| Automated suite                   | 11 test files; 83 tests                                               |
+| Generated grammar parse and model | 10,505 lines; median 25.43 ms; p95 43.30 ms                           |
+| CRuby `parse.y` parse and model   | 16,091 lines; median 13.12 ms; p95 48.35 ms                           |
+| VSIX                              | 12 files; 459.73 KB                                                   |
+| VSIX SHA-256                      | `15cd785519fa093113ac541fec55e7c20d8563ea1a2e08db09aa5f4be44e2255`    |
+| Isolated VS Code installation     | Succeeded as `syntaxpad.syntaxpad@0.1.0`                              |
+
+The extension manifest names the `syntaxpad` Marketplace publisher, while the locally verified
+publishing credential belongs to `ydah`. Resolve the permanent extension identifier before the first
+Marketplace publication. S1–S5 remain required before release acceptance.
+
 ## Human UX review history
 
 | Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                     |
