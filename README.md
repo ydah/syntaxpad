@@ -1,68 +1,131 @@
-# SyntaxPad
+<p align="center">
+  <img src="site/favicon.svg" alt="SyntaxPad logo" width="88">
+</p>
 
-SyntaxPad is a VS Code extension and language service for inspecting and editing Bison, Yacc, and
-Lrama grammar files. The `.y` file remains the only source of truth; diagrams and semantic data are
-derived views.
+<h1 align="center">SyntaxPad</h1>
+
+<p align="center">
+  <strong>VS Code tooling to visualize, analyze, and safely refactor Bison, Yacc, and Lrama grammars.</strong>
+</p>
+
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=ydah.syntaxpad"><img src="https://img.shields.io/visual-studio-marketplace/v/ydah.syntaxpad?label=Marketplace&color=2563eb" alt="Marketplace version"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=ydah.syntaxpad"><img src="https://img.shields.io/visual-studio-marketplace/i/ydah.syntaxpad" alt="Marketplace installs"></a>
+  <a href="https://github.com/ydah/syntaxpad/actions/workflows/ci.yml"><img src="https://github.com/ydah/syntaxpad/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <img src="https://img.shields.io/badge/VS%20Code-1.125%2B-2563eb" alt="VS Code 1.125 or newer">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#development">Development</a>
+</p>
+
+---
+
+SyntaxPad turns `.y` and `.yy` files into live railroad and dependency views without replacing the
+grammar as the source of truth. It keeps working with comments, embedded code, unknown directives,
+and incomplete input while adding navigation, diagnostics, refactoring, and optional conflict
+analysis inside VS Code.
 
 ## Features
 
-- Source-preserving, error-tolerant parsing of decoded editor text, including comments, whitespace,
-  BOM, LF/CRLF, unknown directives, and embedded code.
-- Railroad diagrams with conservative left/right-recursion folding and Lrama standard-rule
-  compaction.
-- Bounded dependency views with neighborhood, reachable, whole-graph, and token-usage search.
-- Diagnostics, completion, hover, definitions, references, symbols, action folding, and rename over
-  classified references.
-- Extract, inline, wrap, add, and reorder patch planning with one-step editor Undo.
-- Bison XML and Lrama conflict analysis with diagnostics, diagram status, counterexamples, and
-  location navigation.
+- **Visualize:** inspect rules as railroad diagrams and explore bounded dependency graphs.
+- **Navigate:** jump between definitions, references, diagnostics, diagrams, and parser conflicts.
+- **Refactor:** rename, extract, inline, wrap, add, and reorder through validated, undoable edits.
+- **Understand large grammars:** search token usage and expand distance-bounded neighborhoods
+  without rendering the whole graph.
+- **Analyze conflicts:** run Bison or Lrama on demand and map conflicts and counterexamples back to
+  grammar rules.
+- **Preserve source:** retain comments, whitespace, line endings, unknown directives, and embedded
+  actions through lossless parsing.
 
-Encoding, rename, and structural-transform limitations are documented in the
-[grammar-core specification](docs/spec/core.md#current-limitations).
+## Installation
 
-SyntaxPad requires VS Code 1.125 or newer. Open a `.y` or `.yy` file and run **SyntaxPad: Open
-Grammar View**.
-
-## Install a local build
+Install
+[SyntaxPad from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=ydah.syntaxpad),
+or run:
 
 ```sh
-npm install
-npm run package
-code --install-extension syntaxpad.vsix
+code --install-extension ydah.syntaxpad
 ```
 
-The generated `syntaxpad.vsix` is self-contained. External parser generators remain optional.
+### Requirements
 
-## Commands and settings
+- VS Code 1.125 or newer.
+- Bison or Lrama only when using external conflict analysis.
 
-The [extension manifest](packages/syntaxpad-vscode/package.json) is the canonical list of commands,
-configuration keys, defaults, menus, and Workspace Trust restrictions. Use the command palette and
-VS Code Settings UI to discover the installed version's available surface.
+## Quick Start
 
-The **SyntaxPad Metrics** output channel records cursor-to-diagram, diagram-to-editor, and
-refactoring application latency locally. The language-server output records diagnostics latency.
+1. Open a Bison, Yacc, or Lrama `.y` or `.yy` file.
+2. Open the Command Palette and run **SyntaxPad: Open Grammar View**.
+3. Select a rule to inspect its railroad diagram and dependency neighborhood.
+4. Click a diagram node to reveal its source or definition.
 
-## External-tool safety
+Refactoring commands are available from the Command Palette. **Extract Rule** and **Add
+Alternative** also appear in the editor context menu when applicable.
 
-Conflict analysis is disabled in untrusted workspaces. A new executable/argument configuration shows
-its possible invocations for confirmation, and the process runs without a shell in a temporary
-directory with bounded captured output. These controls are not a process sandbox, timeout is a soft
-termination request, and confirmation is shared across workspaces for the same configuration. See
-the canonical [security model](docs/spec/security.md) and
-[external-tool limitations](docs/spec/external-tools.md#current-limitations).
+## Conflict Analysis
+
+Run **SyntaxPad: Run Conflict Analysis** to inspect conflicts from Bison or Lrama. The command is
+disabled in untrusted workspaces and asks for confirmation before using a new executable or argument
+configuration. Parser generators run without a shell in a temporary directory with bounded output.
+
+These controls are not a process sandbox. Review the [security model](docs/spec/security.md) and
+[external-tool limitations](docs/spec/external-tools.md#current-limitations) before running a
+configured executable.
+
+## Configuration
+
+Configure SyntaxPad through the VS Code Settings UI.
+
+| Setting                          | Default       | Purpose                                       |
+| -------------------------------- | ------------- | --------------------------------------------- |
+| `syntaxpad.dialect`              | `bison`       | Select `yacc`, `bison`, or `lrama` behavior.  |
+| `syntaxpad.newRulePlacement`     | `afterSource` | Place generated helper rules.                 |
+| `syntaxpad.foldActionsByDefault` | `true`        | Fold embedded action blocks on activation.    |
+| `syntaxpad.tool.kind`            | `bison`       | Select the conflict-analysis generator.       |
+| `syntaxpad.tool.executable`      | `""`          | Override the executable; empty uses its name. |
+| `syntaxpad.tool.arguments`       | `[]`          | Add generator arguments without a shell.      |
+| `syntaxpad.tool.timeoutMs`       | `10000`       | Set the external-tool timeout.                |
+| `syntaxpad.tool.maxOutputKiB`    | `1024`        | Bound captured output.                        |
+
+The [extension manifest](packages/syntaxpad-vscode/package.json) is the canonical reference for all
+commands, settings, defaults, menus, and Workspace Trust restrictions.
+
+## Documentation
+
+- [Architecture](docs/spec/architecture.md)
+- [Grammar core and limitations](docs/spec/core.md)
+- [Language server](docs/spec/lsp.md)
+- [Visualization and grammar view](docs/spec/visualization.md)
+- [External parser-generator integration](docs/spec/external-tools.md)
+- [Security model](docs/spec/security.md)
 
 ## Development
 
-Requirements: Node.js 20 or newer and npm 10 or newer.
+Requires Node.js 20 or newer and npm 10 or newer.
 
 ```sh
-npm install
+npm ci
 npm run check
 npm run benchmark
 ```
 
-The committed `fixtures/small/ambiguous.y` grammar is a quick conflict-analysis smoke test. Bison
-uses XML when available and falls back to its verbose text report; Lrama uses its states report.
+Build an installable VSIX with:
 
-The [documentation index](docs/README.md) links the architecture, implementation specifications,
-limitations, and safety model.
+```sh
+npm run package
+```
+
+## Contributing
+
+Bug reports and pull requests are welcome in the
+[GitHub repository](https://github.com/ydah/syntaxpad).
+
+## License
+
+SyntaxPad is released under the [MIT License](LICENSE).
