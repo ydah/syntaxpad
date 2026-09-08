@@ -1,57 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #eef4f0;
-  --color-ink: #14231b;
-  --color-rail: #17694b;
-  --color-signal: #dd5433;
-  --color-line: #bdcbc3;
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Newsreader", ui-serif, Georgia, serif;
-}
-
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    background: var(--color-paper);
-    color: var(--color-ink);
-  }
-
-  ::selection {
-    background: var(--color-rail);
-    color: white;
-  }
-
-  a:focus-visible {
-    outline: 2px solid var(--color-signal);
-    outline-offset: 4px;
-  }
-}
-
-@layer components {
-  .rail-track {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-  }
-
-  .rail-node {
-    fill: var(--color-paper);
-    stroke: currentColor;
-    stroke-width: 2;
-  }
-
-  .rail-token {
-    fill: var(--color-rail);
-    stroke: var(--color-rail);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
