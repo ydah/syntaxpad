@@ -4,7 +4,7 @@
   "description": "Visualize and refactor Bison, Yacc, and Lrama grammars",
   "version": "0.1.0",
   "private": true,
-  "publisher": "syntaxpad",
+  "publisher": "ydah",
   "license": "MIT",
   "repository": {
     "type": "git",
