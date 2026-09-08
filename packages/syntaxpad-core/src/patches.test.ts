@@ -32,11 +32,15 @@ describe("applyTextPatches", () => {
   });
 
   it("rejects new semantic errors even when the error count is unchanged", () => {
-    const source = "%%\nstart: missing;\n%%";
-    const start = source.indexOf("missing");
+    const source = "%token A\n%%\nstart: missing;\nother: A;\n%%";
+    const oldReference = source.indexOf("missing");
+    const newReference = source.lastIndexOf("A");
     const result = finalizeTransform({
       document: parseGrammar(source),
-      patches: [{ range: { end: start + 7, start }, text: "different" }],
+      patches: [
+        { range: { end: oldReference + 7, start: oldReference }, text: "A" },
+        { range: { end: newReference + 1, start: newReference }, text: "missing" },
+      ],
     });
 
     expect(result).toMatchObject({

@@ -20,20 +20,36 @@ const semanticItem = (item: AlternativeItem): boolean =>
   item.kind === "parameterized" ||
   item.kind === "symbol";
 
-const namedItemsBefore = (
+const addNamedTarget = (
+  targets: Map<string, Set<number>>,
+  name: string,
+  position: number,
+): void => {
+  const positions = targets.get(name) ?? new Set<number>();
+  positions.add(position);
+  targets.set(name, positions);
+};
+
+const namedTargetsBefore = (
+  ruleName: string,
   items: readonly AlternativeItem[],
   endIndex: number,
-): ReadonlySet<string> => {
-  const names = new Set<string>();
+): ReadonlyMap<string, ReadonlySet<number>> => {
+  const targets = new Map<string, Set<number>>();
+  addNamedTarget(targets, ruleName, 0);
+  let position = 0;
   items.slice(0, endIndex).forEach((item) => {
+    if (semanticItem(item)) {
+      position += 1;
+    }
     if (item.kind === "symbol" || item.kind === "parameterized") {
-      names.add(item.name);
+      addNamedTarget(targets, item.name, position);
       if (item.namedReference !== undefined) {
-        names.add(item.namedReference.name);
+        addNamedTarget(targets, item.namedReference.name, position);
       }
     }
   });
-  return names;
+  return targets;
 };
 
 const collectActionDiagnostics = (rule: RuleNode): readonly GrammarDiagnostic[] => {
@@ -44,10 +60,7 @@ const collectActionDiagnostics = (rule: RuleNode): readonly GrammarDiagnostic[] 
         return;
       }
       const availableSlots = alternative.items.slice(0, itemIndex).filter(semanticItem).length;
-      const availableNames = new Set([
-        rule.name,
-        ...namedItemsBefore(alternative.items, itemIndex),
-      ]);
+      const availableNames = namedTargetsBefore(rule.name, alternative.items, itemIndex);
       for (const reference of item.references) {
         if (
           reference.target.kind === "index" &&
@@ -60,10 +73,21 @@ const collectActionDiagnostics = (rule: RuleNode): readonly GrammarDiagnostic[] 
             severity: "error",
           });
         }
-        if (reference.target.kind === "name" && !availableNames.has(reference.target.name)) {
+        if (reference.target.kind !== "name") {
+          continue;
+        }
+        const namedTargets = availableNames.get(reference.target.name);
+        if (namedTargets === undefined) {
           diagnostics.push({
             code: "action-name-not-found",
             message: `Action reference "${reference.target.name}" does not name an available symbol.`,
+            range: reference.range,
+            severity: "error",
+          });
+        } else if (namedTargets.size > 1) {
+          diagnostics.push({
+            code: "action-name-ambiguous",
+            message: `Action reference "${reference.target.name}" names more than one available value.`,
             range: reference.range,
             severity: "error",
           });

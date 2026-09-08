@@ -3,6 +3,7 @@ import { parseGrammar } from "./parser.js";
 import type {
   GrammarDiagnostic,
   GrammarDocument,
+  SourceRange,
   TextPatch,
   TransformError,
   TransformPlan,
@@ -82,21 +83,72 @@ const hasNewEntries = (previous: readonly string[], next: readonly string[]): bo
   });
 };
 
-const errorKeys = (diagnostics: readonly GrammarDiagnostic[]): readonly string[] =>
-  diagnostics
-    .filter((diagnostic) => diagnostic.severity === "error")
-    .map((diagnostic) => `${diagnostic.code}\u0000${diagnostic.message}`);
+const rangeAfterPatches = (
+  range: SourceRange,
+  patches: readonly TextPatch[],
+): SourceRange | undefined => {
+  const touched = patches.some(
+    (patch) =>
+      (patch.range.start < range.end && range.start < patch.range.end) ||
+      (patch.range.start === patch.range.end &&
+        patch.range.start > range.start &&
+        patch.range.start < range.end),
+  );
+  if (touched) {
+    return undefined;
+  }
+  const shift = patches
+    .filter((patch) => patch.range.end <= range.start)
+    .reduce((total, patch) => total + patch.text.length - (patch.range.end - patch.range.start), 0);
+  return { end: range.end + shift, start: range.start + shift };
+};
 
-const unknownFragments = (document: GrammarDocument): readonly string[] => [
-  ...document.unknown.map((node) => document.source.slice(node.range.start, node.range.end).trim()),
+const errorKeys = (
+  diagnostics: readonly GrammarDiagnostic[],
+  patches: readonly TextPatch[],
+  trackRanges: boolean,
+): readonly string[] =>
+  diagnostics.flatMap((diagnostic) => {
+    if (diagnostic.severity !== "error") {
+      return [];
+    }
+    if (!trackRanges) {
+      return [`${diagnostic.code}\u0000${diagnostic.message}`];
+    }
+    const range = rangeAfterPatches(diagnostic.range, patches);
+    return range === undefined
+      ? []
+      : [
+          `${diagnostic.code}\u0000${diagnostic.message}\u0000${String(range.start)}:${String(range.end)}`,
+        ];
+  });
+
+const unknownEntries = (
+  document: GrammarDocument,
+): readonly { readonly range: SourceRange; readonly text: string }[] => [
+  ...document.unknown.map((node) => ({
+    range: node.range,
+    text: document.source.slice(node.range.start, node.range.end).trim(),
+  })),
   ...document.rules.flatMap((rule) =>
     rule.alternatives.flatMap((alternative) =>
-      alternative.items.flatMap((item) => (item.kind === "unknown" ? [item.text.trim()] : [])),
+      alternative.items.flatMap((item) =>
+        item.kind === "unknown" ? [{ range: item.range, text: item.text.trim() }] : [],
+      ),
     ),
   ),
 ];
 
+const unknownKeys = (document: GrammarDocument, patches: readonly TextPatch[]): readonly string[] =>
+  unknownEntries(document).flatMap((entry) => {
+    const range = rangeAfterPatches(entry.range, patches);
+    return range === undefined
+      ? []
+      : [`${entry.text}\u0000${String(range.start)}:${String(range.end)}`];
+  });
+
 export const finalizeTransform = (options: {
+  readonly allowErrorRelocation?: boolean;
   readonly allowStartSymbolChange?: boolean;
   readonly conflictCheckRecommended?: boolean;
   readonly document: GrammarDocument;
@@ -105,8 +157,10 @@ export const finalizeTransform = (options: {
   readonly warnings?: readonly string[];
 }): TransformResult => {
   let preview: string;
+  let patches: readonly TextPatch[];
   try {
-    preview = applyTextPatches(options.document.source, options.patches);
+    patches = validatePatches(options.document.source, options.patches);
+    preview = applyTextPatches(options.document.source, patches);
   } catch (error: unknown) {
     return transformFailure({
       code: "invalid-patch-set",
@@ -117,13 +171,19 @@ export const finalizeTransform = (options: {
   const updated = parseGrammar(preview, { dialect: options.document.dialect });
   const previousModel = analyzeGrammar(options.document);
   const nextModel = analyzeGrammar(updated);
-  if (hasNewEntries(errorKeys(previousModel.diagnostics), errorKeys(nextModel.diagnostics))) {
+  const trackErrorRanges = options.allowErrorRelocation !== true;
+  if (
+    hasNewEntries(
+      errorKeys(previousModel.diagnostics, patches, trackErrorRanges),
+      errorKeys(nextModel.diagnostics, [], trackErrorRanges),
+    )
+  ) {
     return transformFailure({
       code: "postcondition-analysis-error",
       message: "The transformation would introduce a new grammar error.",
     });
   }
-  if (hasNewEntries(unknownFragments(options.document), unknownFragments(updated))) {
+  if (hasNewEntries(unknownKeys(options.document, patches), unknownKeys(updated, []))) {
     return transformFailure({
       code: "postcondition-unknown-region",
       message: "The transformation would introduce an unrecognized grammar region.",
@@ -146,7 +206,7 @@ export const finalizeTransform = (options: {
 
   const plan: TransformPlan = {
     conflictCheckRecommended: options.conflictCheckRecommended ?? false,
-    patches: validatePatches(options.document.source, options.patches),
+    patches,
     preview,
     warnings: options.warnings ?? [],
   };

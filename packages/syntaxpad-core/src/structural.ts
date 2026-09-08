@@ -1,3 +1,5 @@
+import { getDialectProfile } from "./dialect.js";
+import { analyzeGrammar } from "./model.js";
 import { applyTextPatches, finalizeTransform } from "./patches.js";
 import {
   createIndexPatch,
@@ -22,7 +24,6 @@ import type {
 } from "./types.js";
 
 const VALID_SYMBOL_NAME = /^[A-Za-z_.][A-Za-z0-9_.-]*$/u;
-const TERMINAL_DIRECTIVES = new Set(["%left", "%nonassoc", "%precedence", "%right", "%token"]);
 
 export type NewRulePlacement = "afterSource" | "sectionEnd";
 
@@ -160,6 +161,13 @@ const renumberAfterSelection = (options: {
             reference.range,
           );
         }
+        if (reference.kind === "location") {
+          return failure(
+            "cross-boundary-location-reference",
+            `Location reference @${String(oldIndex)} cannot be preserved by the generated helper rule.`,
+            reference.range,
+          );
+        }
         if (oldIndex !== options.context.startPosition) {
           return failure(
             "cross-boundary-index-reference",
@@ -193,13 +201,10 @@ const validateNewRuleName = (
     return failure("duplicate-rule-name", `Rule "${name}" already exists.`);
   }
   if (
-    document.declarations.some(
-      (declaration) =>
-        TERMINAL_DIRECTIVES.has(declaration.directive) &&
-        declaration.symbols.some((symbol) => symbol.name === name),
-    )
+    analyzeGrammar(document).terminals.has(name) ||
+    getDialectProfile(document.dialect).standardRules.has(name)
   ) {
-    return failure("terminal-rule-name", `"${name}" is already declared as a terminal.`);
+    return failure("reserved-rule-name", `"${name}" is already a terminal or standard rule.`);
   }
   return undefined;
 };
@@ -232,7 +237,8 @@ export const extractRule = (
     (item) =>
       (item.kind === "symbol" && parameters.has(item.name)) ||
       (item.kind === "parameterized" &&
-        item.arguments.some((argument) => parameters.has(argument.name))),
+        (parameters.has(item.name) ||
+          item.arguments.some((argument) => parameters.has(argument.name)))),
   );
   if (capturesParameter) {
     return failure(
@@ -479,6 +485,16 @@ export const inlineRule = (
       body.range,
     );
   }
+  const namedBodyReference = actions
+    .flatMap((action) => action.references)
+    .find((reference) => reference.target.kind === "name");
+  if (namedBodyReference !== undefined) {
+    return failure(
+      "inline-named-body-reference",
+      "Named references inside an inlined rule action cannot be mapped safely.",
+      namedBodyReference.range,
+    );
+  }
   if (actions.length > 0 && options.confirmAction !== true) {
     return failure(
       "inline-action-confirmation-required",
@@ -486,8 +502,11 @@ export const inlineRule = (
       actions[0]?.range,
     );
   }
-  const hasUnexpandedReference = document.rules.some((rule) =>
-    rule.alternatives.some((alternative) =>
+  const hasUnexpandedReference = document.rules.some((rule) => {
+    if (rule.parameterNames.some((parameter) => parameter.name === ruleName)) {
+      return false;
+    }
+    return rule.alternatives.some((alternative) =>
       alternative.items.some(
         (item) =>
           (rule.id === resolved.id && item.kind === "symbol" && item.name === ruleName) ||
@@ -495,8 +514,8 @@ export const inlineRule = (
             (item.name === ruleName ||
               item.arguments.some((argument) => argument.name === ruleName))),
       ),
-    ),
-  );
+    );
+  });
   if (hasUnexpandedReference) {
     return failure(
       "inline-unexpanded-reference",
@@ -518,9 +537,9 @@ export const inlineRule = (
       continue;
     }
     for (const alternative of caller.alternatives) {
-      const occurrences = alternative.items.filter(
-        (item) => item.kind === "symbol" && item.name === ruleName,
-      );
+      const occurrences = caller.parameterNames.some((parameter) => parameter.name === ruleName)
+        ? []
+        : alternative.items.filter((item) => item.kind === "symbol" && item.name === ruleName);
       if (occurrences.some((item) => item.kind === "symbol" && item.namedReference !== undefined)) {
         return failure(
           "inline-named-reference",

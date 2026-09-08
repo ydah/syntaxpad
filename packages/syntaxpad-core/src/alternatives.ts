@@ -101,6 +101,7 @@ export const reorderAlternatives = (
   }
 
   return finalizeTransform({
+    allowErrorRelocation: true,
     document,
     patches: [{ range: { end: last.range.end, start: first.range.start }, text: replacement }],
     verify: (updated) =>

@@ -208,3 +208,159 @@ describe("adversarial parsing and diagnostics", () => {
     );
   });
 });
+
+describe("second-pass adversarial regressions", () => {
+  it("records exact targets for typed, bracketed, value, and location references", () => {
+    const source = "{ $<i64>3; @<n2>12; $<expr>expr; $<expr>[expr]; }";
+    const references = scanEmbeddedCode(source, 0).references;
+
+    assert.deepEqual(
+      references.map((reference) =>
+        source.slice(reference.targetRange.start, reference.targetRange.end),
+      ),
+      ["3", "12", "expr", "expr"],
+    );
+  });
+
+  it("preserves type tags across reference-form and sigil matrices", () => {
+    for (const sigil of ["$", "@"] as const) {
+      for (const bracketed of [false, true]) {
+        const target = bracketed ? "[expr]" : "expr";
+        const source = `%token A
+%%
+start: expr { ${sigil}<expr>${target}; };
+expr: A;
+%%`;
+        const renamed = previewOf(renameSymbol(parseGrammar(source), "expr", "term"));
+        assert.ok(renamed.includes(`${sigil}<expr>${bracketed ? "[term]" : "term"}`), renamed);
+      }
+      for (const typeTag of ["i64", "node2", "v3_16"]) {
+        const source = `%token A B C
+%%
+start: A B C { ${sigil}<${typeTag}>3; };
+%%`;
+        const extracted = extractRule(parseGrammar(source), rangeOf(source, "A B"), "prefix");
+        assert.equal(extracted.ok, true, JSON.stringify(extracted));
+        if (extracted.ok) {
+          assert.ok(extracted.plan.preview.includes(`${sigil}<${typeTag}>2`));
+        }
+      }
+    }
+  });
+
+  it("keeps CRLF-spliced line comments inside embedded code", () => {
+    const source = "{\r\n// one \\\r\n } $hidden\r\n $$ = $1;\r\n}";
+    const scanned = scanEmbeddedCode(source, 0);
+
+    assert.equal(scanned.end, source.length);
+    assert.deepEqual(
+      scanned.references.map((reference) => reference.target),
+      [{ kind: "result" }, { index: 1, kind: "index" }],
+    );
+  });
+
+  it("renumbers every repeated inline occurrence and caller reference", () => {
+    for (let count = 1; count <= 5; count += 1) {
+      const occurrences = Array.from({ length: count }, () => "pair").join(" ");
+      const callerIndexes = Array.from(
+        { length: count + 1 },
+        (_, index) => `$${String(index + 1)}`,
+      );
+      const source = `%token A B C
+%start start
+%%
+start: ${occurrences} C { $$ = ${callerIndexes.join(" + ")}; };
+pair: A B { $$ = $2; };
+%%`;
+      const result = inlineRule(parseGrammar(source), "pair", { confirmAction: true });
+
+      assert.equal(result.ok, true, JSON.stringify(result));
+      if (!result.ok) continue;
+      const start = parseGrammar(result.plan.preview).rules[0];
+      assert.ok(start);
+      const actions = start.alternatives[0]?.items.filter((item) => item.kind === "action") ?? [];
+      const bodyIndexes = actions
+        .slice(0, -1)
+        .map(
+          (action) =>
+            action.references.find((reference) => reference.target.kind === "index")?.target,
+        );
+      const finalIndexes = actions
+        .at(-1)
+        ?.references.flatMap((reference) =>
+          reference.target.kind === "index" ? [reference.target.index] : [],
+        );
+
+      assert.deepEqual(
+        bodyIndexes,
+        Array.from({ length: count }, (_, index) => ({ index: index * 3 + 2, kind: "index" })),
+      );
+      assert.deepEqual(finalIndexes, [
+        ...Array.from({ length: count }, (_, index) => (index + 1) * 3),
+        count * 3 + 1,
+      ]);
+    }
+  });
+
+  it("keeps a shadowing Lrama parameter unchanged while inlining the global rule", () => {
+    const source = "%token A\n%%\nstart: item use(A);\nitem: A;\n%rule use(item): item;\n%%";
+    const result = inlineRule(parseGrammar(source, { dialect: "lrama" }), "item");
+
+    assert.equal(result.ok, true, JSON.stringify(result));
+    if (!result.ok) return;
+    assert.ok(result.plan.preview.includes("start: A use(A)"), result.plan.preview);
+    assert.ok(result.plan.preview.includes("%rule use(item): item"), result.plan.preview);
+  });
+
+  it("refuses extraction when a formal parameter is used as a parameterized callee", () => {
+    const source = "%token A\n%%\nstart: pair(A);\n%rule pair(X): X(A);\n%%";
+    const result = extractRule(
+      parseGrammar(source, { dialect: "lrama" }),
+      rangeOf(source, "X(A)"),
+      "prefix",
+    );
+
+    assert.equal(result.ok, false, JSON.stringify(result));
+  });
+
+  it("refuses wrapping when a selected token location is observed", () => {
+    const source = "%token A B\n%%\nstart: A B { @$ = @1; };\n%%";
+    const result = wrapSelection(
+      parseGrammar(source, { dialect: "lrama" }),
+      rangeOf(source, "A B"),
+      "option",
+      "pair",
+    );
+
+    assert.equal(result.ok, false, JSON.stringify(result));
+  });
+
+  it("rejects built-in and dialect-standard generated rule names", () => {
+    const source = "%token A B\n%%\nstart: A B;\n%%";
+
+    assert.equal(extractRule(parseGrammar(source), rangeOf(source, "A B"), "error").ok, false);
+    assert.equal(
+      extractRule(parseGrammar(source, { dialect: "lrama" }), rangeOf(source, "A B"), "option").ok,
+      false,
+    );
+  });
+
+  it("refuses inline actions whose named references lose their scope", () => {
+    const source = "%token A\n%%\nstart: named;\nnamed: A[value] { $$ = $value; };\n%%";
+    const result = inlineRule(parseGrammar(source), "named", { confirmAction: true });
+
+    assert.equal(result.ok, false, JSON.stringify(result));
+  });
+
+  it("diagnoses ambiguous implicit names without double-counting one labelled slot", () => {
+    const ambiguous = analyzeGrammar(
+      parseGrammar("%token A\n%%\nstart: A A { $$ = $A; };\n%%"),
+    ).diagnostics;
+    const labelled = analyzeGrammar(
+      parseGrammar("%token A\n%%\nstart: A[A] { $$ = $A; };\n%%"),
+    ).diagnostics;
+
+    assert.ok(ambiguous.some((diagnostic) => diagnostic.code === "action-name-ambiguous"));
+    assert.ok(!labelled.some((diagnostic) => diagnostic.code === "action-name-ambiguous"));
+  });
+});
