@@ -157,6 +157,21 @@ missed that the default Bison profile reported `separated_nonempty_list` as unde
 fixture. The S1 row in that record is not evidence that the default-profile workflow passed. A user
 review found the mismatch before release.
 
+## 2026-09-08 — S1 and S2 procedure correction
+
+- **Date:** 2026-09-08
+- **Commit:** `033cf32`
+- **Target:** remove the default-profile error from S1 and make S2 directly reproducible
+- **Result:** Automated regression checks passed; S1 and S2 still require user reruns
+
+| Observation                    | Result                                                                                 |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| S1 default Bison fixture       | Parsed 8 rules with 0 diagnostics                                                      |
+| S2 Bison 2.3 fixture procedure | Baseline 0 conflicts; edited fixture 1 shift/reduce, 0 reduce/reduce, mapped to `expr` |
+| Automated suite                | 11 test files; 84 tests                                                                |
+| Generated grammar benchmark    | 10,505 lines; median 16.98 ms; p95 26.66 ms                                            |
+| CRuby benchmark                | 16,091 lines; median 9.68 ms; p95 17.20 ms                                             |
+
 ## Human UX review history
 
 | Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                                                                                                       |
