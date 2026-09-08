@@ -27,8 +27,7 @@ the diagnostics, and the server maps their severity, code, message, and range to
 
 Before publishing, the server compares the current open-document version with the version captured
 for the analysis. Results for an older version are discarded. Published diagnostics include the
-document version. Diagnostic latency is logged by the language server; its acceptance target is
-defined in the [performance budgets](../quality/budgets.md).
+document version. Diagnostic latency is logged by the language server.
 
 ## Language features
 

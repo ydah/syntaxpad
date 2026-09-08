@@ -18,8 +18,7 @@ derived views.
   location navigation.
 
 Encoding, rename, and structural-transform limitations are documented in the
-[grammar-core specification](docs/spec/core.md#current-limitations). Automated checks do not yet
-constitute release acceptance; see the [current quality record](docs/quality/records.md).
+[grammar-core specification](docs/spec/core.md#current-limitations).
 
 SyntaxPad requires VS Code 1.125 or newer. Open a `.y` or `.yy` file and run **SyntaxPad: Open
 Grammar View**.
@@ -65,6 +64,5 @@ npm run benchmark
 The committed `fixtures/small/ambiguous.y` grammar is a quick conflict-analysis smoke test. Bison
 uses XML when available and falls back to its verbose text report; Lrama uses its states report.
 
-The [documentation index](docs/README.md) is the single entry point for architecture, decisions,
-quality contracts, [verification procedures](docs/quality/verification.md), safety invariants, and
-the [remaining human UX gates](docs/quality/scenarios.md).
+The [documentation index](docs/README.md) links the architecture, implementation specifications,
+limitations, and safety model.

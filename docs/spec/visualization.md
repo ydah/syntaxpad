@@ -114,10 +114,9 @@ pointer activation.
 ## Performance measurement
 
 Cursor and navigation timings are written to the local **SyntaxPad Metrics** output channel. The
-required thresholds live in the [performance budgets](../quality/budgets.md). The cursor-highlight
-acknowledgement is currently posted after selection classes or replacement SVG markup have been
-applied to the DOM. It is not synchronized with `requestAnimationFrame` and therefore does not prove
-that a browser paint has completed.
+cursor-highlight acknowledgement is currently posted after selection classes or replacement SVG
+markup have been applied to the DOM. It is not synchronized with `requestAnimationFrame` and
+therefore does not prove that a browser paint has completed.
 
 ## Current limitations
 

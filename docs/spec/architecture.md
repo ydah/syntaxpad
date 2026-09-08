@@ -48,9 +48,6 @@ Documents are cached by URI, dialect, and version in the language server. The ex
 separate versioned visualization cache. A document change invalidates the relevant derived state;
 the source string remains the only persistent grammar representation.
 
-Performance targets are contracts in [quality budgets](../quality/budgets.md), and measured results
-are recorded only in [quality records](../quality/records.md).
-
 ## Errors and partial results
 
 Core diagnostics have a stable code, severity, and UTF-16 range. Unknown declarations and rule items

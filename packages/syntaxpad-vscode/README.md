@@ -22,8 +22,7 @@ a configured executable.
 The current implementation has documented encoding, rename, transform, and external-run limitations.
 Review the
 [core limitations](https://github.com/ydah/syntaxpad/blob/main/docs/spec/core.md#current-limitations)
-and [quality record](https://github.com/ydah/syntaxpad/blob/main/docs/quality/records.md) before
-relying on transformations for critical grammars.
+before relying on transformations for critical grammars.
 
 The **SyntaxPad Metrics** output channel reports local interaction latency; no metrics leave VS
 Code.

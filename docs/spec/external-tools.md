@@ -71,8 +71,7 @@ diagnostics, updates the grammar view, and shows a full/counts-only/failed notif
 6. The extension maps the result to diagnostics and a version-labelled panel report.
 
 The security boundary and the limits of these controls are canonical in
-[the security specification](security.md). Performance contracts and observed results remain in
-[quality budgets](../quality/budgets.md) and [quality records](../quality/records.md).
+[the security specification](security.md).
 
 ## Current limitations
 
