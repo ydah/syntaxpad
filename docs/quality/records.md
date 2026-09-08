@@ -130,6 +130,26 @@ Marketplace publication. S1–S5 remain required before release acceptance.
 S1–S5 remain required before release acceptance. Marketplace publication and a final GitHub release
 must not precede those human gates.
 
+## 2026-09-08 — objective portions of S1–S5
+
+- **Date:** 2026-09-08
+- **Commit:** `40d2b41`
+- **Target:** execute the deterministic, headless assertions behind each human UX scenario without
+  treating automation as usability acceptance
+- **Result:** All objective assertions passed; the human timing, action-count, interaction, and
+  usability gates remain pending
+
+| Scenario | Objective result                                                                                                                                                       | Still requires human review                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| S1       | The medium fixture parsed without diagnostics; four railroad views rendered; the three direct `select_stmt` dependencies and all dependency modes/search rendered      | Visible selection following, keyboard navigation, elapsed time, and action count |
+| S2       | Bison 2.3 reported 0 baseline conflicts and exactly 1 shift/reduce conflict after the edit; `expr` mapped to both conflict-marked views                                | Trust/confirmation UI, editor navigation, elapsed time, and action count         |
+| S3       | The exact procedure input changed all seven `argument_list` targets to `call_arguments` and no other text                                                              | F2 interaction, workspace-edit inspection, one-step Undo, time, and action count |
+| S4       | The valid extraction produced `named_argument ')' { use($2); }`; the invalid case returned `cross-boundary-index-reference` without a plan                             | Preview/recommendation UI, one-step Undo, elapsed time, and action count         |
+| S5       | CRuby `parse.y` parsed without diagnostics; terminal search found all 13 `tIDENTIFIER` user rules; distance-2 and styled SVG views rendered in a 38.65 ms headless run | Visible large-file interaction, elapsed time, and action count                   |
+
+These results reduce the human review to interaction quality and integration behavior. They do not
+change the Pending status of the S1–S5 acceptance rows below.
+
 ## Human UX review history
 
 | Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                     |
