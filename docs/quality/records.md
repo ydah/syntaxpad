@@ -150,15 +150,23 @@ must not precede those human gates.
 These results reduce the human review to interaction quality and integration behavior. They do not
 change the Pending status of the S1–S5 acceptance rows below.
 
+## 2026-09-08 — correction to the objective S1 check
+
+The objective S1 script for commit `40d2b41` explicitly selected the Lrama profile and therefore
+missed that the default Bison profile reported `separated_nonempty_list` as undefined in the medium
+fixture. The S1 row in that record is not evidence that the default-profile workflow passed. A user
+review found the mismatch before release.
+
 ## Human UX review history
 
-| Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                     |
-| ------------- | -------------- | --------------------------------------------------------------- | -------- | ------- | ------------------------- |
-| Not performed | Not applicable | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Pending | Human validation required |
-| Not performed | Not applicable | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Pending | Human validation required |
-| Not performed | Not applicable | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Pending | Human validation required |
-| Not performed | Not applicable | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Pending | Human validation required |
-| Not performed | Not applicable | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Pending | Human validation required |
+| Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                                                                                                       |
+| ------------- | -------------- | --------------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| Not performed | Not applicable | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Pending | Human validation required                                                                                   |
+| Not performed | Not applicable | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Pending | Human validation required                                                                                   |
+| Not performed | Not applicable | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Pending | Human validation required                                                                                   |
+| Not performed | Not applicable | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Pending | Human validation required                                                                                   |
+| Not performed | Not applicable | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Pending | Human validation required                                                                                   |
+| 2026-09-08    | `845e8d9`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Fail    | Default Bison profile reported `separated_nonempty_list` as undefined; timing and actions were not recorded |
 
 Append one row for each completed scenario review. If the same scenario fails three consecutive
 reviews, create an ADR reconsidering the interaction approach before continuing.

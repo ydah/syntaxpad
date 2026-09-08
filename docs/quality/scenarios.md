@@ -9,18 +9,17 @@ usability.
 
 ### S1 — Understand an unfamiliar rule
 
-Open the medium fixture, search for `select_stmt`, inspect its railroad diagram, then follow its
-three highest-use dependencies.
+Open `fixtures/medium/sql-subset.y` with the default Bison profile, search for `select_stmt`,
+inspect its railroad diagram, then follow `select_list`, `table_ref`, and `where_clause`.
 
 - Target: <= 45 s, <= 8 intentional actions, no manual line scrolling.
 - Gate: Viewer acceptance and later releases.
 
 ### S2 — Add an alternative and locate a conflict
 
-Use the conflict-free disposable grammar and exact steps in the
+Copy `fixtures/small/conflict-free.y` to a disposable `.y` file and follow the exact commands in the
 [S2 conflict procedure](verification.md#s2-conflict-procedure). Add the provided `expr '-' expr`
-alternative, run the configured generator, select the new shift/reduce conflict, and navigate to its
-rule.
+alternative, run Bison, select the new shift/reduce conflict, and navigate to its rule.
 
 - Target: <= 60 s, <= 10 actions.
 - Gate: Conflict-analysis acceptance and later releases.

@@ -162,15 +162,34 @@ other: %empty ;
     ).not.toContain("missing-type-declaration");
   });
 
-  it("understands Lrama parameterized standard rules", async () => {
-    const document = parseGrammar(await fixture("medium/sql-subset.y"), {
-      dialect: "lrama",
-    });
+  it("keeps the medium viewer fixture valid in the default profile", async () => {
+    const document = parseGrammar(await fixture("medium/sql-subset.y"));
+    const model = analyzeGrammar(document);
+
+    expect(model.diagnostics).toEqual([]);
+    expect(
+      model.edges.some((edge) => edge.from === "select_list" && edge.to === "select_items"),
+    ).toBe(true);
+  });
+
+  it("understands Lrama parameterized standard rules", () => {
+    const document = parseGrammar(
+      `%token COMMA ITEM
+%%
+start:
+  separated_nonempty_list(COMMA, item)
+;
+item:
+  ITEM
+;
+%%`,
+      { dialect: "lrama" },
+    );
     const model = analyzeGrammar(document);
 
     expect(model.diagnostics.some((entry) => entry.message.includes("separated_nonempty"))).toBe(
       false,
     );
-    expect(model.edges.some((edge) => edge.to === "select_item")).toBe(true);
+    expect(model.edges.some((edge) => edge.from === "start" && edge.to === "item")).toBe(true);
   });
 });

@@ -6,7 +6,11 @@ select_stmt:
   ;
 select_list:
     STAR
-  | separated_nonempty_list(COMMA, select_item)
+  | select_items
+  ;
+select_items:
+    select_item
+  | select_items COMMA select_item
   ;
 select_item:
     IDENT

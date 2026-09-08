@@ -163,8 +163,8 @@ Record the observed preview, rejection, recommendation, and undo behavior in
 
 ## Conflict analysis
 
-1. Save the disposable [S2 grammar](#s2-conflict-procedure) as a `.y` file, open it, and run
-   **SyntaxPad: Open Grammar View**.
+1. Copy `fixtures/small/conflict-free.y` to a disposable directory, open that directory in VS Code,
+   open the copied `.y` file, press F1, and run **SyntaxPad: Open Grammar View**.
 2. Run **SyntaxPad: Run Conflict Analysis** in an untrusted workspace. Verify the command is
    disabled and no process starts.
 3. Trust the workspace and run it again. Inspect the confirmation: it must show the executable,
@@ -188,7 +188,15 @@ mapping, and conflict-status rendering.
 
 ### S2 conflict procedure
 
-Start from this conflict-free grammar:
+From the repository root, create and open a disposable copy of the conflict-free fixture:
+
+```sh
+mkdir -p /tmp/syntaxpad-s2
+cp fixtures/small/conflict-free.y /tmp/syntaxpad-s2/scenario.y
+code --profile "SyntaxPad Release Test" /tmp/syntaxpad-s2
+```
+
+The copied file contains this grammar:
 
 ```yacc
 %token NUMBER
@@ -199,11 +207,14 @@ expr:
 %%
 ```
 
-1. Complete conflict-analysis steps 1–4 above and confirm the baseline reports zero conflicts.
-2. Place the editor cursor inside `expr` and run **SyntaxPad: Add Alternative**. Dismiss the
-   immediate conflict-check recommendation because the generated alternative is not complete yet.
-3. Replace the generated `/* TODO */` alternative body with `expr '-' expr` and save the file. The
-   completed rule must read:
+1. Open `scenario.y`, press F1, run **SyntaxPad: Open Grammar View**, then run **SyntaxPad: Run
+   Conflict Analysis**. Choose **Run** in the one-time command confirmation and verify the baseline
+   notification reports `0 shift/reduce, 0 reduce/reduce`.
+2. Place the editor cursor inside `expr`, press F1, and run **SyntaxPad: Add Alternative**. Press
+   Esc to dismiss the immediate conflict-check recommendation because the generated alternative is
+   not complete yet.
+3. Replace the generated `/* TODO */` with `expr '-' expr` and save the file. The completed rule
+   must read:
 
    ```yacc
    expr:
@@ -212,10 +223,10 @@ expr:
    ;
    ```
 
-4. Run **SyntaxPad: Run Conflict Analysis** again. With Bison, the unresolved associativity must
-   produce exactly one shift/reduce conflict and no reduce/reduce conflict.
-5. Verify `expr` is marked in both diagrams, an editor diagnostic appears on its definition, and
-   **Go to expr** in the conflict list selects that rule in the editor.
+4. Press F1 and run **SyntaxPad: Run Conflict Analysis** again. The notification must report
+   `1 shift/reduce, 0 reduce/reduce`.
+5. Verify `expr` is marked in both diagrams and has an editor diagnostic. In the conflict list,
+   select **Go to expr** and verify that the editor selects the rule name.
 
 If the baseline already has a conflict, or the added alternative does not produce exactly the
 expected new conflict, record a failure in [records.md](records.md) instead of accepting S2.
