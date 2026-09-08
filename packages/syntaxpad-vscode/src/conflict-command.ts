@@ -13,6 +13,16 @@ export type ConflictCommandTarget =
   | { readonly kind: "document"; readonly uri: string }
   | { readonly kind: "invalid" };
 
+interface ConflictRequestIdentity {
+  readonly id: number | undefined;
+  readonly version: number;
+}
+
+export const isCurrentConflictRequest = (
+  request: ConflictRequestIdentity,
+  current: ConflictRequestIdentity,
+): boolean => request.id === current.id && request.version === current.version;
+
 export const createConflictCommandArgument = (
   uri: string | undefined,
 ): ConflictCommandArgument | undefined =>

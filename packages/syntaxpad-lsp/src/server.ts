@@ -319,7 +319,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
       },
       {
         command: {
-          arguments: [{ ...argument, kind: "option" }],
+          arguments: [argument],
           command: "syntaxpad.wrapOption",
           title: "Wrap selection in option",
         },
@@ -328,7 +328,7 @@ connection.onCodeAction(async (params): Promise<CodeAction[]> => {
       },
       {
         command: {
-          arguments: [{ ...argument, kind: "list" }],
+          arguments: [argument],
           command: "syntaxpad.wrapList",
           title: "Wrap selection in list",
         },

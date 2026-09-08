@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createConflictCommandArgument, parseConflictCommandTarget } from "./conflict-command.js";
+import {
+  createConflictCommandArgument,
+  isCurrentConflictRequest,
+  parseConflictCommandTarget,
+} from "./conflict-command.js";
 
 describe("conflict command target", () => {
   it("uses the active editor when the command palette supplies no target", () => {
@@ -22,5 +26,13 @@ describe("conflict command target", () => {
     expect(parseConflictCommandTarget({ extra: true, uri: "file:///grammar.y" })).toEqual({
       kind: "invalid",
     });
+  });
+
+  it("rejects stale or superseded conflict results", () => {
+    const request = { id: 2, version: 5 };
+
+    expect(isCurrentConflictRequest(request, request)).toBe(true);
+    expect(isCurrentConflictRequest(request, { id: 2, version: 6 })).toBe(false);
+    expect(isCurrentConflictRequest(request, { id: 3, version: 5 })).toBe(false);
   });
 });

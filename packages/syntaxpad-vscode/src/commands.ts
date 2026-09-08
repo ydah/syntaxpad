@@ -66,15 +66,10 @@ const editorFor = async (uri?: string): Promise<vscode.TextEditor | undefined> =
 const parseEditor = (editor: vscode.TextEditor): GrammarDocument =>
   parseGrammar(editor.document.getText(), { dialect: dialectFor(editor.document) });
 
-const activeSelection = (editor: vscode.TextEditor, input: unknown): SourceRange => {
-  const parsed = rangeArgumentSchema.safeParse(input);
-  return parsed.success
-    ? { end: parsed.data.end, start: parsed.data.start }
-    : {
-        end: editor.document.offsetAt(editor.selection.end),
-        start: editor.document.offsetAt(editor.selection.start),
-      };
-};
+const activeSelection = (editor: vscode.TextEditor): SourceRange => ({
+  end: editor.document.offsetAt(editor.selection.end),
+  start: editor.document.offsetAt(editor.selection.start),
+});
 
 const promptRuleName = async (title: string): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -144,6 +139,10 @@ const requireEditor = async (uri?: string): Promise<vscode.TextEditor | undefine
 
 const extractCommand = async (input: unknown): Promise<void> => {
   const argument = rangeArgumentSchema.safeParse(input);
+  if (input !== undefined && !argument.success) {
+    await vscode.window.showErrorMessage("The extract rule request was invalid.");
+    return;
+  }
   const editor = await requireEditor(argument.success ? argument.data.uri : undefined);
   if (editor === undefined) {
     return;
@@ -156,21 +155,34 @@ const extractCommand = async (input: unknown): Promise<void> => {
   await applyPlan(
     editor,
     version,
-    extractRule(parseEditor(editor), activeSelection(editor, input), name, {
-      placement: newRulePlacementFor(editor.document),
-    }),
+    extractRule(
+      parseEditor(editor),
+      argument.success
+        ? { end: argument.data.end, start: argument.data.start }
+        : activeSelection(editor),
+      name,
+      {
+        placement: newRulePlacementFor(editor.document),
+      },
+    ),
   );
 };
 
 const wrapCommand = async (input: unknown, kind: WrapKind): Promise<void> => {
   const argument = rangeArgumentSchema.safeParse(input);
+  if (input !== undefined && !argument.success) {
+    await vscode.window.showErrorMessage("The wrap selection request was invalid.");
+    return;
+  }
   const editor = await requireEditor(argument.success ? argument.data.uri : undefined);
   if (editor === undefined) {
     return;
   }
   const version = editor.document.version;
   const document = parseEditor(editor);
-  const selection = activeSelection(editor, input);
+  const selection = argument.success
+    ? { end: argument.data.end, start: argument.data.start }
+    : activeSelection(editor);
   const options = { placement: newRulePlacementFor(editor.document) };
   let result = wrapSelection(document, selection, kind, undefined, options);
   if (!result.ok && result.error.code === "helper-name-required") {

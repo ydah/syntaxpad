@@ -9,7 +9,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import * as vscode from "vscode";
 
-import { parseConflictCommandTarget } from "./conflict-command.js";
+import { isCurrentConflictRequest, parseConflictCommandTarget } from "./conflict-command.js";
 import { SyntaxPadPanel } from "./panel.js";
 
 const toolConfigurationSchema = z.strictObject({
@@ -160,11 +160,14 @@ const showReportResult = async (report: ConflictReport): Promise<void> => {
 
 export const registerConflictAnalysis = (context: vscode.ExtensionContext): void => {
   const diagnostics = vscode.languages.createDiagnosticCollection("syntaxpad-conflicts");
+  const activeRequests = new Map<string, number>();
+  let nextRequestId = 0;
   context.subscriptions.push(
     diagnostics,
     vscode.workspace.onDidChangeTextDocument((event) => {
       if (isGrammarDocument(event.document)) {
         diagnostics.delete(event.document.uri);
+        activeRequests.delete(event.document.uri.toString());
       }
     }),
     vscode.commands.registerCommand("syntaxpad.runConflicts", async (input: unknown) => {
@@ -206,6 +209,10 @@ export const registerConflictAnalysis = (context: vscode.ExtensionContext): void
         return;
       }
 
+      const uri = document.uri.toString();
+      const request = { id: ++nextRequestId, version: document.version };
+      const source = document.getText();
+      activeRequests.set(uri, request.id);
       const controller = new AbortController();
       const report = await vscode.window.withProgress(
         {
@@ -223,7 +230,7 @@ export const registerConflictAnalysis = (context: vscode.ExtensionContext): void
               executable: configuration.executable,
               maxOutputBytes: configuration.maxOutputKiB * 1_024,
               signal: controller.signal,
-              source: document.getText(),
+              source,
               timeoutMs: configuration.timeoutMs,
               tool: configuration.tool,
             });
@@ -232,8 +239,17 @@ export const registerConflictAnalysis = (context: vscode.ExtensionContext): void
           }
         },
       );
+      if (
+        !isCurrentConflictRequest(request, {
+          id: activeRequests.get(uri),
+          version: document.version,
+        })
+      ) {
+        return;
+      }
+      activeRequests.delete(uri);
       diagnostics.set(document.uri, conflictDiagnostics(document, report));
-      await SyntaxPadPanel.publishConflicts(document.uri, document.version, report);
+      await SyntaxPadPanel.publishConflicts(document.uri, request.version, report);
       await showReportResult(report);
     }),
   );
