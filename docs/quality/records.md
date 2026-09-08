@@ -186,20 +186,21 @@ the Problems panel was clean.
 
 ## Human UX review history
 
-| Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                                                                                                       |
-| ------------- | -------------- | --------------------------------------------------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- |
-| Not performed | Not applicable | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Pending | Human validation required                                                                                   |
-| Not performed | Not applicable | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Pending | Human validation required                                                                                   |
-| Not performed | Not applicable | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Pending | Human validation required                                                                                   |
-| Not performed | Not applicable | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Pending | Human validation required                                                                                   |
-| Not performed | Not applicable | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Pending | Human validation required                                                                                   |
-| 2026-09-08    | `845e8d9`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Fail    | Default Bison profile reported `separated_nonempty_list` as undefined; timing and actions were not recorded |
-| 2026-09-08    | `cd8edf6`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Partial | Functional behavior passed after the fixture correction; timing and actions were not recorded               |
-| 2026-09-08    | `cd8edf6`      | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Partial | Conflict count and Go to expr behavior passed; timing and actions were not recorded                         |
-| 2026-09-08    | `cd8edf6`      | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Partial | Rename and Undo behavior passed; timing and actions were not recorded                                       |
-| 2026-09-08    | `cd8edf6`      | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Partial | Valid extraction, rejection, and Undo behavior passed; timing and actions were not recorded                 |
-| 2026-09-08    | `cd8edf6`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Distance had no visible effect while search remained active; timing and actions were not recorded           |
-| 2026-09-08    | `4c38184`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Valid CRuby/Lrama syntax produced many false diagnostics; Distance still had no visible effect              |
+| Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                                                                                                                          |
+| ------------- | -------------- | --------------------------------------------------------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Not performed | Not applicable | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Pending | Human validation required                                                                                                      |
+| Not performed | Not applicable | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Pending | Human validation required                                                                                                      |
+| Not performed | Not applicable | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Pending | Human validation required                                                                                                      |
+| Not performed | Not applicable | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Pending | Human validation required                                                                                                      |
+| Not performed | Not applicable | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Pending | Human validation required                                                                                                      |
+| 2026-09-08    | `845e8d9`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Fail    | Default Bison profile reported `separated_nonempty_list` as undefined; timing and actions were not recorded                    |
+| 2026-09-08    | `cd8edf6`      | [S1](scenarios.md#s1--understand-an-unfamiliar-rule)            | User     | Partial | Functional behavior passed after the fixture correction; timing and actions were not recorded                                  |
+| 2026-09-08    | `cd8edf6`      | [S2](scenarios.md#s2--add-an-alternative-and-locate-a-conflict) | User     | Partial | Conflict count and Go to expr behavior passed; timing and actions were not recorded                                            |
+| 2026-09-08    | `cd8edf6`      | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Partial | Rename and Undo behavior passed; timing and actions were not recorded                                                          |
+| 2026-09-08    | `cd8edf6`      | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Partial | Valid extraction, rejection, and Undo behavior passed; timing and actions were not recorded                                    |
+| 2026-09-08    | `cd8edf6`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Distance had no visible effect while search remained active; timing and actions were not recorded                              |
+| 2026-09-08    | `4c38184`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Valid CRuby/Lrama syntax produced many false diagnostics; Distance still had no visible effect                                 |
+| 2026-09-09    | `3bf4562`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Partial | No false diagnostics; selecting `cname` cleared search and Distance 2 expanded the graph; timing and actions were not recorded |
 
 Append one row for each completed scenario review. If the same scenario fails three consecutive
 reviews, create an ADR reconsidering the interaction approach before continuing.
@@ -244,3 +245,15 @@ reviews, create an ADR reconsidering the interaction approach before continuing.
 | VSIX                              | 12 files; 461.11 KB                                                |
 | VSIX SHA-256                      | `4cfa488da87fc1704ea16e2659742b8a869e623cd5034ab06614d2cf6659ab17` |
 | Isolated VS Code installation     | Succeeded as `ydah.syntaxpad@0.1.0`                                |
+
+## 2026-09-09 — v0.1.0 release acceptance
+
+- **Date:** 2026-09-09
+- **Commit:** `3bf4562`
+- **Target:** close the remaining human UX gate after the corrected S1–S5 runs
+- **Result:** Pass; approved for release by the reviewer
+
+The reviewer confirmed the required functional behavior for S1–S5. Elapsed times and action counts
+were not recorded separately, and the reviewer explicitly accepted that evidence gap for v0.1.0. The
+automated suite, dependency audit, benchmarks, package inspection, isolated installation, and the
+corrected CRuby/Lrama checks all passed with no remaining release-blocking defect.
