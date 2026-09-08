@@ -224,3 +224,23 @@ reviews, create an ADR reconsidering the interaction approach before continuing.
 | VSIX                              | 12 files; 459.87 KB                                                |
 | VSIX SHA-256                      | `e509119af42f41ae36a0ba11bd185fbd43beef64e60548682755b3091d0e5135` |
 | Isolated VS Code installation     | Succeeded as `ydah.syntaxpad@0.1.0`                                |
+
+## 2026-09-08 — S5 CRuby/Lrama semantic correction
+
+- **Date:** 2026-09-08
+- **Commit:** `e58c8a8`
+- **Target:** eliminate false diagnostics from the pinned CRuby grammar and retain the corrected
+  search-to-neighborhood transition
+- **Result:** Technical checks passed; S5 requires a user rerun with the updated extension
+
+| Observation                       | Result                                                             |
+| --------------------------------- | ------------------------------------------------------------------ |
+| CRuby semantic model              | 251 rules; 0 diagnostics; start `program`                          |
+| CRuby `cname`, Distance 1 and 2   | Graph grows from 3 nodes to 7 nodes                                |
+| Dependency audit                  | 0 known vulnerabilities                                            |
+| Automated suite                   | 11 test files; 90 tests                                            |
+| Generated grammar parse and model | 10,505 lines; median 17.00 ms; p95 30.19 ms                        |
+| CRuby `parse.y` parse and model   | 16,091 lines; median 11.06 ms; p95 13.92 ms                        |
+| VSIX                              | 12 files; 461.11 KB                                                |
+| VSIX SHA-256                      | `4cfa488da87fc1704ea16e2659742b8a869e623cd5034ab06614d2cf6659ab17` |
+| Isolated VS Code installation     | Succeeded as `ydah.syntaxpad@0.1.0`                                |
