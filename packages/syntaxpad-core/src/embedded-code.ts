@@ -58,8 +58,19 @@ const scanRawString = (source: string, start: number): number | undefined => {
 };
 
 const scanLineComment = (source: string, start: number): number => {
-  const newline = source.indexOf("\n", start + 2);
-  return newline < 0 ? source.length : newline;
+  let cursor = start + 2;
+  while (cursor < source.length) {
+    const newline = source.indexOf("\n", cursor);
+    if (newline < 0) {
+      return source.length;
+    }
+    const previous = source[newline - 1] === "\r" ? newline - 2 : newline - 1;
+    if (source[previous] !== "\\") {
+      return newline;
+    }
+    cursor = newline + 1;
+  }
+  return source.length;
 };
 
 const scanBlockComment = (source: string, start: number): number => {
@@ -92,11 +103,21 @@ const scanPreprocessorLine = (source: string, start: number): number => {
 const parseTarget = (
   source: string,
   cursor: number,
-): { readonly end: number; readonly target: ActionReferenceTarget } | undefined => {
+):
+  | {
+      readonly end: number;
+      readonly range: SourceRange;
+      readonly target: ActionReferenceTarget;
+    }
+  | undefined => {
   const character = source[cursor];
 
   if (character === "$") {
-    return { end: cursor + 1, target: { kind: "result" } };
+    return {
+      end: cursor + 1,
+      range: { end: cursor + 1, start: cursor },
+      target: { kind: "result" },
+    };
   }
 
   if (isDigit(character)) {
@@ -106,6 +127,7 @@ const parseTarget = (
     }
     return {
       end,
+      range: { end, start: cursor },
       target: { index: Number.parseInt(source.slice(cursor, end), 10), kind: "index" },
     };
   }
@@ -119,7 +141,11 @@ const parseTarget = (
     if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/u.test(name)) {
       return undefined;
     }
-    return { end: close + 1, target: { kind: "name", name } };
+    return {
+      end: close + 1,
+      range: { end: close, start: cursor + 1 },
+      target: { kind: "name", name },
+    };
   }
 
   if (!isIdentifierStart(character)) {
@@ -130,7 +156,11 @@ const parseTarget = (
   while (isIdentifierPart(source[end])) {
     end += 1;
   }
-  return { end, target: { kind: "name", name: source.slice(cursor, end) } };
+  return {
+    end,
+    range: { end, start: cursor },
+    target: { kind: "name", name: source.slice(cursor, end) },
+  };
 };
 
 const parseActionReference = (
@@ -162,6 +192,7 @@ const parseActionReference = (
     kind: sigil === "$" ? ("value" as const) : ("location" as const),
     range: { end: parsed.end, start },
     target: parsed.target,
+    targetRange: parsed.range,
   };
   const reference: ActionReference = typeTag === undefined ? base : { ...base, typeTag };
   return { end: parsed.end, reference };

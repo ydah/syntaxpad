@@ -22,6 +22,7 @@ import type {
 } from "./types.js";
 
 const VALID_SYMBOL_NAME = /^[A-Za-z_.][A-Za-z0-9_.-]*$/u;
+const TERMINAL_DIRECTIVES = new Set(["%left", "%nonassoc", "%precedence", "%right", "%token"]);
 
 export type NewRulePlacement = "afterSource" | "sectionEnd";
 
@@ -159,12 +160,19 @@ const renumberAfterSelection = (options: {
             reference.range,
           );
         }
+        if (oldIndex !== options.context.startPosition) {
+          return failure(
+            "cross-boundary-index-reference",
+            `Action reference $${String(oldIndex)} cannot be preserved by the generated helper rule.`,
+            reference.range,
+          );
+        }
         newIndex = options.context.startPosition;
       } else if (oldIndex > lastPosition) {
         newIndex = oldIndex - options.context.semanticCount + options.newSemanticCount;
       }
       if (newIndex !== oldIndex) {
-        const patch = createIndexPatch(options.document.source, reference, newIndex);
+        const patch = createIndexPatch(reference, newIndex);
         if (patch !== undefined) {
           patches.push(patch);
         }
@@ -183,6 +191,15 @@ const validateNewRuleName = (
   }
   if (document.rules.some((rule) => rule.name === name)) {
     return failure("duplicate-rule-name", `Rule "${name}" already exists.`);
+  }
+  if (
+    document.declarations.some(
+      (declaration) =>
+        TERMINAL_DIRECTIVES.has(declaration.directive) &&
+        declaration.symbols.some((symbol) => symbol.name === name),
+    )
+  ) {
+    return failure("terminal-rule-name", `"${name}" is already declared as a terminal.`);
   }
   return undefined;
 };
@@ -209,6 +226,20 @@ export const extractRule = (
   const context = selectionContext(document, selection);
   if (isTransformFailure(context)) {
     return context;
+  }
+  const parameters = new Set(context.rule.parameterNames.map((parameter) => parameter.name));
+  const capturesParameter = context.selected.some(
+    (item) =>
+      (item.kind === "symbol" && parameters.has(item.name)) ||
+      (item.kind === "parameterized" &&
+        item.arguments.some((argument) => parameters.has(argument.name))),
+  );
+  if (capturesParameter) {
+    return failure(
+      "extract-parameter-capture",
+      "A selection that depends on rule parameters cannot be extracted safely.",
+      context.range,
+    );
   }
   const renumbered = renumberAfterSelection({
     collapseSelectedReferences: false,
@@ -351,11 +382,7 @@ const renderInlineBody = (
       if (reference.target.kind !== "index") {
         return;
       }
-      const patch = createIndexPatch(
-        document.source,
-        reference,
-        reference.target.index + callerPosition - 1,
-      );
+      const patch = createIndexPatch(reference, reference.target.index + callerPosition - 1);
       if (patch !== undefined) {
         localPatches.push({
           range: {
@@ -401,6 +428,27 @@ export const inlineRule = (
   if (isTransformFailure(resolved)) {
     return resolved;
   }
+  const startSymbol =
+    document.declarations.find((declaration) => declaration.directive === "%start")?.symbols[0]
+      ?.name ?? document.rules[0]?.name;
+  if (startSymbol === ruleName) {
+    return failure(
+      "inline-start-rule",
+      "The start rule cannot be inlined without changing the grammar entry point.",
+      resolved.range,
+    );
+  }
+  if (
+    document.declarations.some((declaration) =>
+      declaration.symbols.some((symbol) => symbol.name === ruleName),
+    )
+  ) {
+    return failure(
+      "inline-declared-rule",
+      "A declared rule cannot be safely removed by inlining.",
+      resolved.range,
+    );
+  }
   if (resolved.parameterized || resolved.alternatives.length !== 1) {
     return failure(
       "inline-rule-not-simple",
@@ -438,6 +486,24 @@ export const inlineRule = (
       actions[0]?.range,
     );
   }
+  const hasUnexpandedReference = document.rules.some((rule) =>
+    rule.alternatives.some((alternative) =>
+      alternative.items.some(
+        (item) =>
+          (rule.id === resolved.id && item.kind === "symbol" && item.name === ruleName) ||
+          (item.kind === "parameterized" &&
+            (item.name === ruleName ||
+              item.arguments.some((argument) => argument.name === ruleName))),
+      ),
+    ),
+  );
+  if (hasUnexpandedReference) {
+    return failure(
+      "inline-unexpanded-reference",
+      "The rule is referenced from a form that cannot be safely inlined.",
+      resolved.range,
+    );
+  }
 
   const bodyCount = body.items.filter(isSemanticItem).length;
   if (bodyCount === 0) {
@@ -468,7 +534,7 @@ export const inlineRule = (
         if (position !== undefined) {
           patches.push({
             range: item.range,
-            text: renderInlineBody(document, body, position),
+            text: renderInlineBody(document, body, position + index * (bodyCount - 1)),
           });
           occurrenceCount += 1;
         }
@@ -491,7 +557,7 @@ export const inlineRule = (
               valueOffset,
             );
             if (mapped !== reference.target.index) {
-              const patch = createIndexPatch(document.source, reference, mapped);
+              const patch = createIndexPatch(reference, mapped);
               if (patch !== undefined) {
                 patches.push(patch);
               }

@@ -126,11 +126,11 @@ tail:
     );
   });
 
-  it("wraps one Lrama symbol and renumbers collapsed positions", () => {
+  it("wraps Lrama symbols when the helper preserves the referenced value", () => {
     const source = `%token A B
 %%
 start:
-  A B { $$ = $1 + $2; }
+  A B { $$ = $1; }
 ;
 %%`;
     const result = wrapSelection(
@@ -144,18 +144,18 @@ start:
     if (!result.ok) {
       return;
     }
-    expect(result.plan.preview).toContain("option(pair) { $$ = $1 + $1; }");
+    expect(result.plan.preview).toContain("option(pair) { $$ = $1; }");
     expect(result.plan.preview).toContain("pair:");
   });
 
   it("inlines a simple action rule after explicit confirmation", () => {
     const source = `%token A B C
 %%
-pair:
-  A B { $$ = $2; }
-;
 start:
   pair C { $$ = $1; }
+;
+pair:
+  A B { $$ = $2; }
 ;
 %%`;
     const pending = inlineRule(parseGrammar(source), "pair");

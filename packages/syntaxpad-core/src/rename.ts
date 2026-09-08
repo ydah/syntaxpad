@@ -1,29 +1,7 @@
 import { finalizeTransform } from "./patches.js";
-import type {
-  ActionReference,
-  GrammarDocument,
-  SourceRange,
-  TextPatch,
-  TransformResult,
-} from "./types.js";
+import type { GrammarDocument, SourceRange, TextPatch, TransformResult } from "./types.js";
 
 const VALID_SYMBOL_NAME = /^[A-Za-z_.][A-Za-z0-9_.-]*$/u;
-
-const targetNameRange = (
-  source: string,
-  reference: ActionReference,
-  name: string,
-): SourceRange | undefined => {
-  const text = source.slice(reference.range.start, reference.range.end);
-  const relativeStart = text.indexOf(name);
-  if (relativeStart < 0) {
-    return undefined;
-  }
-  return {
-    end: reference.range.start + relativeStart + name.length,
-    start: reference.range.start + relativeStart,
-  };
-};
 
 const addPatch = (patches: Map<string, TextPatch>, range: SourceRange, text: string): void => {
   patches.set(`${String(range.start)}:${String(range.end)}`, { range, text });
@@ -91,15 +69,17 @@ export const renameSymbol = (
               addPatch(patches, argument.range, newName);
             });
         }
+        if (item.kind === "precedence" && item.symbol === oldName) {
+          if (item.symbolRange !== undefined) {
+            addPatch(patches, item.symbolRange, newName);
+          }
+        }
         if (item.kind === "action") {
           item.references.forEach((reference) => {
             if (reference.target.kind !== "name" || reference.target.name !== oldName) {
               return;
             }
-            const range = targetNameRange(document.source, reference, oldName);
-            if (range !== undefined) {
-              addPatch(patches, range, newName);
-            }
+            addPatch(patches, reference.targetRange, newName);
           });
         }
       });

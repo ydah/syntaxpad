@@ -44,7 +44,10 @@ const collectActionDiagnostics = (rule: RuleNode): readonly GrammarDiagnostic[] 
         return;
       }
       const availableSlots = alternative.items.slice(0, itemIndex).filter(semanticItem).length;
-      const availableNames = namedItemsBefore(alternative.items, itemIndex);
+      const availableNames = new Set([
+        rule.name,
+        ...namedItemsBefore(alternative.items, itemIndex),
+      ]);
       for (const reference of item.references) {
         if (
           reference.target.kind === "index" &&
@@ -84,7 +87,7 @@ const createDefinitions = (
 };
 
 const collectTerminals = (document: GrammarDocument): ReadonlySet<string> => {
-  const terminals = new Set<string>();
+  const terminals = new Set<string>(["error"]);
   document.declarations.forEach((declaration) => {
     if (TERMINAL_DIRECTIVES.has(declaration.directive)) {
       declaration.symbols.forEach((symbol) => terminals.add(symbol.name));
@@ -235,7 +238,9 @@ export const analyzeGrammar = (document: GrammarDocument): GrammarModel => {
             ? [{ name: item.name, range: item.nameRange }]
             : item.kind === "parameterized"
               ? [{ name: item.name, range: item.nameRange }, ...item.arguments]
-              : [];
+              : item.kind === "precedence" && item.symbol !== undefined
+                ? [{ name: item.symbol, range: item.symbolRange ?? item.range }]
+                : [];
         candidates.forEach((candidate) => {
           if (parameters.has(candidate.name) || profile.standardRules.has(candidate.name)) {
             return;

@@ -1,10 +1,4 @@
-import {
-  lineStartAt,
-  readIdentifier,
-  scanComment,
-  scanQuotedLiteral,
-  skipTrivia,
-} from "./grammar-lex.js";
+import { readIdentifier, scanComment, scanQuotedLiteral, skipTrivia } from "./grammar-lex.js";
 import { scanEmbeddedCode } from "./embedded-code.js";
 import { parseAlternativeItems } from "./rule-items.js";
 import type {
@@ -92,14 +86,7 @@ const parseParameters = (
   return undefined;
 };
 
-const isLineHeaderPosition = (source: string, start: number): boolean =>
-  /^[\t ]*$/u.test(source.slice(lineStartAt(source, start), start));
-
 const parseHeader = (source: string, start: number, limit: number): HeaderParse | undefined => {
-  if (!isLineHeaderPosition(source, start)) {
-    return undefined;
-  }
-
   let cursor = start;
   let parameterized = false;
   let inline = false;

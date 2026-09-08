@@ -53,30 +53,18 @@ export const findAlternativeContaining = (
   return undefined;
 };
 
-const referenceNumberRange = (
-  source: string,
-  reference: ActionReference,
-): SourceRange | undefined => {
+const referenceNumberRange = (reference: ActionReference): SourceRange | undefined => {
   if (reference.target.kind !== "index") {
     return undefined;
   }
-  const text = source.slice(reference.range.start, reference.range.end);
-  const match = /[0-9]+/u.exec(text);
-  if (match?.index === undefined) {
-    return undefined;
-  }
-  return {
-    end: reference.range.start + match.index + match[0].length,
-    start: reference.range.start + match.index,
-  };
+  return reference.targetRange;
 };
 
 export const createIndexPatch = (
-  source: string,
   reference: ActionReference,
   index: number,
 ): TextPatch | undefined => {
-  const range = referenceNumberRange(source, reference);
+  const range = referenceNumberRange(reference);
   return range === undefined ? undefined : { range, text: String(index) };
 };
 

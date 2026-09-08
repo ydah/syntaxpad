@@ -1,5 +1,5 @@
 import { scanEmbeddedCode } from "./embedded-code.js";
-import { readIdentifier, scanQuotedLiteral, skipTrivia } from "./grammar-lex.js";
+import { readIdentifier, scanComment, scanQuotedLiteral, skipTrivia } from "./grammar-lex.js";
 import type {
   ActionItem,
   AlternativeItem,
@@ -38,6 +38,11 @@ const scanParenthesized = (source: string, start: number, limit: number): number
   let cursor = start + 1;
   let depth = 1;
   while (cursor < limit) {
+    const commentEnd = scanComment(source, cursor, limit);
+    if (commentEnd !== undefined) {
+      cursor = commentEnd;
+      continue;
+    }
     if (source[cursor] === "'" || source[cursor] === '"') {
       cursor = scanQuotedLiteral(source, cursor, limit);
       continue;
@@ -62,6 +67,11 @@ const extractParameterArguments = (
   const arguments_: ParameterArgument[] = [];
   let cursor = range.start;
   while (cursor < range.end) {
+    const commentEnd = scanComment(source, cursor, range.end);
+    if (commentEnd !== undefined) {
+      cursor = commentEnd;
+      continue;
+    }
     if (source[cursor] === "'" || source[cursor] === '"') {
       cursor = scanQuotedLiteral(source, cursor, range.end);
       continue;

@@ -30,6 +30,7 @@ export interface ActionReference {
   readonly kind: "location" | "value";
   readonly range: SourceRange;
   readonly target: ActionReferenceTarget;
+  readonly targetRange: SourceRange;
   readonly typeTag?: string;
 }
 
