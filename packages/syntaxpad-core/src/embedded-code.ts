@@ -12,7 +12,7 @@ const isIdentifierStart = (character: string | undefined): boolean =>
   character !== undefined && /[A-Za-z_]/u.test(character);
 
 const isIdentifierPart = (character: string | undefined): boolean =>
-  character !== undefined && /[A-Za-z0-9_.-]/u.test(character);
+  character !== undefined && /[A-Za-z0-9_]/u.test(character);
 
 const isDigit = (character: string | undefined): boolean =>
   character !== undefined && /[0-9]/u.test(character);

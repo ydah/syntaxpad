@@ -51,16 +51,16 @@ export const renameSymbol = (
           if (item.name === oldName) {
             addPatch(patches, item.nameRange, newName);
           }
-          if (item.namedReference?.name === oldName) {
-            addPatch(
-              patches,
-              {
-                end: item.namedReference.range.end - 1,
-                start: item.namedReference.range.start + 1,
-              },
-              newName,
-            );
-          }
+        }
+        if ("namedReference" in item && item.namedReference?.name === oldName) {
+          addPatch(
+            patches,
+            {
+              end: item.namedReference.range.end - 1,
+              start: item.namedReference.range.start + 1,
+            },
+            newName,
+          );
         }
         if (item.kind === "parameterized") {
           item.arguments

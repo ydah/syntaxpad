@@ -1,6 +1,6 @@
 import { parseDeclarations } from "./declarations.js";
 import { findSectionDelimiters } from "./grammar-lex.js";
-import { parseRules } from "./rules.js";
+import { parseParameterizedRules, parseRules } from "./rules.js";
 import type {
   FoldingRange,
   GrammarDiagnostic,
@@ -70,6 +70,10 @@ export const parseGrammar = (source: string, options: ParseOptions = {}): Gramma
     declarationsSection?.contentRange ?? { end: 0, start: 0 },
     dialect,
   );
+  const parameterizedRules =
+    declarationsSection === undefined
+      ? { diagnostics: [], rules: [] }
+      : parseParameterizedRules(source, declarationsSection.contentRange);
   const rules =
     rulesSection === undefined
       ? { diagnostics: [], rules: [], unknown: [] }
@@ -80,10 +84,12 @@ export const parseGrammar = (source: string, options: ParseOptions = {}): Gramma
     declarations: declarations.declarations,
     dialect,
     diagnostics:
-      missingSection === undefined ? rules.diagnostics : [missingSection, ...rules.diagnostics],
+      missingSection === undefined
+        ? [...parameterizedRules.diagnostics, ...rules.diagnostics]
+        : [missingSection, ...parameterizedRules.diagnostics, ...rules.diagnostics],
     encoding: source.startsWith("\uFEFF") ? "utf8-bom" : "utf8",
     newline: determineNewline(source),
-    rules: rules.rules,
+    rules: [...rules.rules, ...parameterizedRules.rules],
     sections,
     source,
     unknown: [...declarations.unknown, ...rules.unknown],

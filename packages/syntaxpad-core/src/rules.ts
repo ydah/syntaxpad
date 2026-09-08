@@ -1,4 +1,10 @@
-import { readIdentifier, scanComment, scanQuotedLiteral, skipTrivia } from "./grammar-lex.js";
+import {
+  readIdentifier,
+  scanComment,
+  scanPercentBlock,
+  scanQuotedLiteral,
+  skipTrivia,
+} from "./grammar-lex.js";
 import { scanEmbeddedCode } from "./embedded-code.js";
 import { parseAlternativeItems } from "./rule-items.js";
 import type {
@@ -18,6 +24,7 @@ interface HeaderParse {
   readonly nameRange: SourceRange;
   readonly parameterNames: readonly ParameterArgument[];
   readonly parameterized: boolean;
+  readonly typeTag?: string;
 }
 
 interface RuleParse {
@@ -117,11 +124,21 @@ const parseHeader = (source: string, start: number, limit: number): HeaderParse 
     cursor = skipTrivia(source, parameters.end, limit);
   }
 
+  let typeTag: string | undefined;
+  if (source[cursor] === "<") {
+    const close = source.indexOf(">", cursor + 1);
+    if (close < 0 || close >= limit) {
+      return undefined;
+    }
+    typeTag = source.slice(cursor + 1, close);
+    cursor = skipTrivia(source, close + 1, limit);
+  }
+
   if (source[cursor] !== ":") {
     return undefined;
   }
 
-  return {
+  const header = {
     colonRange: { end: cursor + 1, start: cursor },
     headRange: { end: cursor, start },
     inline,
@@ -130,6 +147,7 @@ const parseHeader = (source: string, start: number, limit: number): HeaderParse 
     parameterNames,
     parameterized,
   };
+  return typeTag === undefined ? header : { ...header, typeTag };
 };
 
 const splitRuleBody = (source: string, start: number, limit: number): BodySplit => {
@@ -213,7 +231,11 @@ const splitRuleBody = (source: string, start: number, limit: number): BodySplit 
 const hasNonTrivia = (source: string, range: SourceRange): boolean =>
   skipTrivia(source, range.start, range.end) < range.end;
 
-export const parseRules = (source: string, range: SourceRange): RuleParse => {
+const parseRuleRange = (
+  source: string,
+  range: SourceRange,
+  requireRuleKeyword: boolean,
+): RuleParse => {
   const rules: RuleNode[] = [];
   const diagnostics: GrammarDiagnostic[] = [];
   const unknown: UnknownNode[] = [];
@@ -222,13 +244,19 @@ export const parseRules = (source: string, range: SourceRange): RuleParse => {
 
   while (cursor < range.end) {
     const candidate = skipTrivia(source, cursor, range.end);
-    const header = parseHeader(source, candidate, range.end);
+    const explicitRule = consumeKeyword(source, candidate, "%rule", range.end) !== undefined;
+    const header =
+      requireRuleKeyword && !explicitRule ? undefined : parseHeader(source, candidate, range.end);
     if (header === undefined) {
       const commentEnd = scanComment(source, cursor, range.end);
       if (commentEnd !== undefined) {
         cursor = commentEnd;
+      } else if (source.startsWith("%{", cursor)) {
+        cursor = Math.min(scanPercentBlock(source, cursor), range.end);
       } else if (source[cursor] === "'" || source[cursor] === '"') {
         cursor = scanQuotedLiteral(source, cursor, range.end);
+      } else if (source[cursor] === "{") {
+        cursor = Math.min(scanEmbeddedCode(source, cursor).end, range.end);
       } else {
         cursor += 1;
       }
@@ -269,10 +297,12 @@ export const parseRules = (source: string, range: SourceRange): RuleParse => {
       parameterized: header.parameterized,
       range: { end: body.end, start: candidate },
     };
+    const typedRule =
+      header.typeTag === undefined ? baseRule : { ...baseRule, typeTag: header.typeTag };
     rules.push(
       body.semicolonRange === undefined
-        ? baseRule
-        : { ...baseRule, semicolonRange: body.semicolonRange },
+        ? typedRule
+        : { ...typedRule, semicolonRange: body.semicolonRange },
     );
     cursor = body.end;
     unknownStart = cursor;
@@ -284,3 +314,9 @@ export const parseRules = (source: string, range: SourceRange): RuleParse => {
 
   return { diagnostics, rules, unknown };
 };
+
+export const parseRules = (source: string, range: SourceRange): RuleParse =>
+  parseRuleRange(source, range, false);
+
+export const parseParameterizedRules = (source: string, range: SourceRange): RuleParse =>
+  parseRuleRange(source, range, true);

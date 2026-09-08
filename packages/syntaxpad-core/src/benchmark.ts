@@ -50,7 +50,12 @@ const corpusPath = fileURLToPath(
   new URL("../../../fixtures/external/cruby-parse.y", import.meta.url),
 );
 if (existsSync(corpusPath)) {
-  results.push(measure("cruby-parse.y", readFileSync(corpusPath, "utf8")));
+  const source = readFileSync(corpusPath, "utf8");
+  const diagnostics = analyzeGrammar(parseGrammar(source, { dialect: "lrama" })).diagnostics;
+  if (diagnostics.length > 0) {
+    throw new Error(`CRuby grammar produced ${String(diagnostics.length)} diagnostic(s).`);
+  }
+  results.push(measure("cruby-parse.y", source));
 }
 
 console.log(JSON.stringify(results, undefined, 2));

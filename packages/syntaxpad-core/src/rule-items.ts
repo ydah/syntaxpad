@@ -34,6 +34,37 @@ const parseNamedReference = (
   return { name: identifier.value, range: { end: close + 1, start } };
 };
 
+const parseItemSuffix = (
+  source: string,
+  start: number,
+  limit: number,
+): {
+  readonly end: number;
+  readonly namedReference?: NamedReference;
+  readonly typeTag?: string;
+} => {
+  let cursor = skipTrivia(source, start, limit);
+  let end = start;
+  const namedReference = parseNamedReference(source, cursor, limit);
+  if (namedReference !== undefined) {
+    end = namedReference.range.end;
+    cursor = skipTrivia(source, namedReference.range.end, limit);
+  }
+  let typeTag: string | undefined;
+  if (source[cursor] === "<") {
+    const close = source.indexOf(">", cursor + 1);
+    if (close >= 0 && close < limit) {
+      typeTag = source.slice(cursor + 1, close);
+      end = close + 1;
+    }
+  }
+  return {
+    end,
+    ...(namedReference === undefined ? {} : { namedReference }),
+    ...(typeTag === undefined ? {} : { typeTag }),
+  };
+};
+
 const scanParenthesized = (source: string, start: number, limit: number): number => {
   let cursor = start + 1;
   let depth = 1;
@@ -168,6 +199,7 @@ export const parseAlternativeItems = (source: string, range: SourceRange): Parse
     if (source[cursor] === "{") {
       const scanned = scanEmbeddedCode(source, cursor);
       const itemEnd = Math.min(scanned.end, range.end);
+      const suffix = parseItemSuffix(source, itemEnd, range.end);
       const action: ActionItem = {
         codeRange: {
           end: Math.min(scanned.codeRange.end, range.end),
@@ -175,13 +207,17 @@ export const parseAlternativeItems = (source: string, range: SourceRange): Parse
         },
         isMidrule: false,
         kind: "action",
-        range: { end: itemEnd, start: cursor },
+        range: { end: suffix.end, start: cursor },
         references: scanned.references.filter((reference) => reference.range.end <= range.end),
         safe: scanned.safe && scanned.end <= range.end,
         semanticPosition: semanticPosition + 1,
         terminated: scanned.terminated && scanned.end <= range.end,
       };
-      items.push(action);
+      items.push({
+        ...action,
+        ...(suffix.namedReference === undefined ? {} : { namedReference: suffix.namedReference }),
+        ...(suffix.typeTag === undefined ? {} : { typeTag: suffix.typeTag }),
+      });
       semanticPosition += 1;
       if (!action.terminated) {
         diagnostics.push({
@@ -191,19 +227,25 @@ export const parseAlternativeItems = (source: string, range: SourceRange): Parse
           severity: "error",
         });
       }
-      cursor = itemEnd;
+      cursor = suffix.end;
       continue;
     }
 
     if (source[cursor] === "'" || source[cursor] === '"') {
-      const end = scanQuotedLiteral(source, cursor, range.end);
-      items.push({
+      const literalEnd = scanQuotedLiteral(source, cursor, range.end);
+      const suffix = parseItemSuffix(source, literalEnd, range.end);
+      const item = {
         kind: "literal",
-        range: { end, start: cursor },
-        text: source.slice(cursor, end),
-      });
+        range: { end: suffix.end, start: cursor },
+        text: source.slice(cursor, literalEnd),
+      } as const;
+      items.push(
+        suffix.namedReference === undefined
+          ? item
+          : { ...item, namedReference: suffix.namedReference },
+      );
       semanticPosition += 1;
-      cursor = end;
+      cursor = suffix.end;
       continue;
     }
 
@@ -219,9 +261,7 @@ export const parseAlternativeItems = (source: string, range: SourceRange): Parse
       const afterName = skipTrivia(source, identifier.end, range.end);
       if (source[afterName] === "(") {
         const endOfCall = scanParenthesized(source, afterName, range.end);
-        const afterCall = skipTrivia(source, endOfCall, range.end);
-        const namedReference = parseNamedReference(source, afterCall, range.end);
-        const end = namedReference?.range.end ?? endOfCall;
+        const suffix = parseItemSuffix(source, endOfCall, range.end);
         const node = {
           arguments: extractParameterArguments(source, {
             end: Math.max(afterName + 1, endOfCall - 1),
@@ -230,25 +270,32 @@ export const parseAlternativeItems = (source: string, range: SourceRange): Parse
           kind: "parameterized" as const,
           name: identifier.value,
           nameRange: { end: identifier.end, start: cursor },
-          range: { end, start: cursor },
+          range: { end: suffix.end, start: cursor },
         };
-        items.push(namedReference === undefined ? node : { ...node, namedReference });
+        items.push(
+          suffix.namedReference === undefined
+            ? node
+            : { ...node, namedReference: suffix.namedReference },
+        );
         semanticPosition += 1;
-        cursor = end;
+        cursor = suffix.end;
         continue;
       }
 
-      const namedReference = parseNamedReference(source, afterName, range.end);
-      const end = namedReference?.range.end ?? identifier.end;
+      const suffix = parseItemSuffix(source, identifier.end, range.end);
       const node = {
         kind: "symbol" as const,
         name: identifier.value,
         nameRange: { end: identifier.end, start: cursor },
-        range: { end, start: cursor },
+        range: { end: suffix.end, start: cursor },
       };
-      items.push(namedReference === undefined ? node : { ...node, namedReference });
+      items.push(
+        suffix.namedReference === undefined
+          ? node
+          : { ...node, namedReference: suffix.namedReference },
+      );
       semanticPosition += 1;
-      cursor = end;
+      cursor = suffix.end;
       continue;
     }
 

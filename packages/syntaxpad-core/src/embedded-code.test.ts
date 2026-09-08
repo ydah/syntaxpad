@@ -69,4 +69,15 @@ describe("scanEmbeddedCode", () => {
       "loc",
     ]);
   });
+
+  it("stops unbracketed references before C member access", () => {
+    const source = "{ use($head->node, @kw.beg_pos, $[dotted.name]); }";
+    const scanned = scanEmbeddedCode(source, 0);
+
+    expect(scanned.references.map((reference) => reference.target)).toEqual([
+      { kind: "name", name: "head" },
+      { kind: "name", name: "kw" },
+      { kind: "name", name: "dotted.name" },
+    ]);
+  });
 });

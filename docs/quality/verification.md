@@ -235,7 +235,8 @@ expected new conflict, record a failure in [records.md](records.md) instead of a
 
 1. Run `npm ci`, `npm run check`, and `npm run benchmark`. Compare the interaction measurements with
    [the canonical budgets](budgets.md).
-2. Run `scripts/fetch-corpus.sh` if needed. Open `fixtures/external/cruby-parse.y`, select
+2. Run `scripts/fetch-corpus.sh` if needed. Set `syntaxpad.dialect` to **Lrama**, open
+   `fixtures/external/cruby-parse.y`, and verify that SyntaxPad publishes no diagnostics. Select
    `program`, and verify a railroad and distance-1 graph render without a parse error.
 3. Search the dependency panel for `tIDENTIFIER`. Verify its node and every rule using it appear,
    with degree and start-distance styling in the SVG. Select `cname`; the search must clear and the

@@ -20,8 +20,10 @@ export const resolveUniqueRule = (
   name: string,
 ): RuleNode | TransformResult => {
   const matches = document.rules.filter((rule) => rule.name === name);
-  const match = matches[0];
-  if (matches.length === 1 && match !== undefined) {
+  const concrete = matches.filter((rule) => !rule.parameterized);
+  const candidates = concrete.length > 0 ? concrete : matches;
+  const match = candidates[0];
+  if (candidates.length === 1 && match !== undefined) {
     return match;
   }
   return {

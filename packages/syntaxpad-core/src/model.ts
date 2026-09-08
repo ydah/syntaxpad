@@ -36,7 +36,6 @@ const namedTargetsBefore = (
   endIndex: number,
 ): ReadonlyMap<string, ReadonlySet<number>> => {
   const targets = new Map<string, Set<number>>();
-  addNamedTarget(targets, ruleName, 0);
   let position = 0;
   items.slice(0, endIndex).forEach((item) => {
     if (semanticItem(item)) {
@@ -44,11 +43,14 @@ const namedTargetsBefore = (
     }
     if (item.kind === "symbol" || item.kind === "parameterized") {
       addNamedTarget(targets, item.name, position);
-      if (item.namedReference !== undefined) {
-        addNamedTarget(targets, item.namedReference.name, position);
-      }
+    }
+    if ("namedReference" in item && item.namedReference !== undefined) {
+      addNamedTarget(targets, item.namedReference.name, position);
     }
   });
+  if (!targets.has(ruleName)) {
+    addNamedTarget(targets, ruleName, 0);
+  }
   return targets;
 };
 
@@ -149,7 +151,12 @@ const createEdges = (edgeRanges: ReadonlyMap<string, readonly SourceRange[]>): D
 
 const findStartSymbol = (document: GrammarDocument): string | undefined =>
   document.declarations.find((declaration) => declaration.directive === "%start")?.symbols[0]
-    ?.name ?? document.rules[0]?.name;
+    ?.name ??
+  document.rules.find(
+    (rule) =>
+      rule.range.start >=
+      (document.sections.find((section) => section.kind === "rules")?.contentRange.start ?? 0),
+  )?.name;
 
 const calculateReachability = (
   startSymbol: string | undefined,
@@ -191,14 +198,25 @@ const createStructuralDiagnostics = (
       .filter((declaration) => declaration.directive === "%type")
       .flatMap((declaration) => declaration.symbols.map((symbol) => symbol.name)),
   );
+  document.rules.forEach((rule) => {
+    if (rule.typeTag !== undefined) {
+      typedRules.add(rule.name);
+    }
+  });
+  const rulesById = new Map(document.rules.map((rule) => [rule.id, rule]));
   definitions.forEach((entries, name) => {
-    entries.slice(1).forEach((entry) => {
-      diagnostics.push({
-        code: "duplicate-rule",
-        message: `Rule "${name}" is defined more than once.`,
-        range: entry.range,
-        severity: "error",
-      });
+    const seenKinds = new Set<boolean>();
+    entries.forEach((entry) => {
+      const parameterized = rulesById.get(entry.ruleId)?.parameterized ?? false;
+      if (seenKinds.has(parameterized)) {
+        diagnostics.push({
+          code: "duplicate-rule",
+          message: `Rule "${name}" is defined more than once.`,
+          range: entry.range,
+          severity: "error",
+        });
+      }
+      seenKinds.add(parameterized);
     });
   });
   references
@@ -212,7 +230,26 @@ const createStructuralDiagnostics = (
       });
     });
   document.rules.forEach((rule) => {
-    if (document.dialect !== "yacc" && typedRules.size > 0 && !typedRules.has(rule.name)) {
+    const needsType = rule.alternatives.some((alternative) =>
+      alternative.items.some(
+        (item) =>
+          item.kind === "action" &&
+          !item.isMidrule &&
+          item.typeTag === undefined &&
+          item.references.some(
+            (reference) =>
+              reference.kind === "value" &&
+              reference.target.kind === "result" &&
+              reference.typeTag === undefined,
+          ),
+      ),
+    );
+    if (
+      document.dialect !== "yacc" &&
+      typedRules.size > 0 &&
+      !typedRules.has(rule.name) &&
+      needsType
+    ) {
       diagnostics.push({
         code: "missing-type-declaration",
         message: `Rule "${rule.name}" has no %type declaration in this typed grammar.`,

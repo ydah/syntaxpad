@@ -164,6 +164,11 @@ query. It therefore did not exercise the real UI transition where a token search
 override Distance and the enabled control appeared to do nothing. A user review found the missing
 transition before release.
 
+The same check inspected parser diagnostics but not semantic-model diagnostics. The pinned CRuby
+grammar therefore appeared clean even though valid Lrama parameterized definitions, item labels, and
+C member access produced false semantic errors. The S5 result in that record is not evidence that
+the Problems panel was clean.
+
 ## 2026-09-08 — S1 and S2 procedure correction
 
 - **Date:** 2026-09-08
@@ -194,6 +199,7 @@ transition before release.
 | 2026-09-08    | `cd8edf6`      | [S3](scenarios.md#s3--rename-a-nonterminal-safely)              | User     | Partial | Rename and Undo behavior passed; timing and actions were not recorded                                       |
 | 2026-09-08    | `cd8edf6`      | [S4](scenarios.md#s4--extract-a-repeated-sequence)              | User     | Partial | Valid extraction, rejection, and Undo behavior passed; timing and actions were not recorded                 |
 | 2026-09-08    | `cd8edf6`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Distance had no visible effect while search remained active; timing and actions were not recorded           |
+| 2026-09-08    | `4c38184`      | [S5](scenarios.md#s5--trace-a-token-in-a-large-grammar)         | User     | Fail    | Valid CRuby/Lrama syntax produced many false diagnostics; Distance still had no visible effect              |
 
 Append one row for each completed scenario review. If the same scenario fails three consecutive
 reviews, create an ADR reconsidering the interaction approach before continuing.

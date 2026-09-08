@@ -42,6 +42,20 @@ start:
     expect(result.plan.preview).toContain('"$old_rule"');
     expect(result.plan.preview).toContain("/* $old_rule */");
   });
+
+  it("renames labels on literals and midrule actions", () => {
+    const source = `%%
+start: '!'[marker] { $$ = 1; }[saved]<node> item { $$ = $marker + $saved; };
+item: %empty;
+%%`;
+    const result = renameSymbol(parseGrammar(source), "saved", "state");
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.plan.preview).toContain("}[state]<node>");
+      expect(result.plan.preview).toContain("$marker + $state");
+    }
+  });
 });
 
 describe("alternative transforms", () => {

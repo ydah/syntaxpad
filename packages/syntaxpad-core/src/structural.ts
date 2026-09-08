@@ -117,9 +117,9 @@ const selectedNames = (selected: readonly AlternativeItem[]): ReadonlySet<string
   selected.forEach((item) => {
     if (item.kind === "symbol" || item.kind === "parameterized") {
       names.add(item.name);
-      if (item.namedReference !== undefined) {
-        names.add(item.namedReference.name);
-      }
+    }
+    if ("namedReference" in item && item.namedReference !== undefined) {
+      names.add(item.namedReference.name);
     }
   });
   return names;

@@ -86,7 +86,7 @@ export const skipTrivia = (source: string, start: number, limit = source.length)
   return cursor;
 };
 
-const skipPercentBlock = (source: string, start: number): number => {
+export const scanPercentBlock = (source: string, start: number): number => {
   let cursor = start + 2;
   while (cursor < source.length) {
     if (source.startsWith("%}", cursor)) {
@@ -122,7 +122,7 @@ export const findSectionDelimiters = (source: string): readonly SourceRange[] =>
       continue;
     }
     if (source.startsWith("%{", cursor)) {
-      cursor = skipPercentBlock(source, cursor);
+      cursor = scanPercentBlock(source, cursor);
       continue;
     }
     if (source.startsWith("%%", cursor)) {

@@ -36,7 +36,8 @@ semantic analysis and have compact visualization behavior:
 
 Action references are ranged and classified for `$$`, `$n`, `$name`, `$[name]`, `@$`, `@n`, `@name`,
 and `@[name]`. Typed Bison forms such as `$<tag>n` and `$<tag>$` retain the tag and classify the
-suffix. Labels on RHS symbols (`symbol[label]`) participate in named-reference resolution.
+suffix. Labels on RHS symbols, literals, and midrule actions participate in named-reference
+resolution. Unbracketed action references stop before C member-access punctuation.
 
 ## CST and semantic model
 
@@ -81,9 +82,7 @@ Extract, Inline, and Wrap recommend a subsequent parser-generator conflict check
 - `parseGrammar` accepts an already-decoded JavaScript string. `encoding` records only whether that
   string begins with a BOM (`utf8-bom` versus `utf8`); it does not preserve or decode arbitrary
   original byte encodings.
-- CRuby/Lrama rule headers with a type tag between parameters and the colon, such as
-  `%rule name(P) <tag>:`, are not parsed as rule headers. The shorthand `item?` is not parsed as a
-  parameterized standard-rule call.
+- The Lrama shorthand `item?` is not parsed as a parameterized standard-rule call.
 - A missing rule semicolon consumes the remaining rules section; recovery does not synchronize at
   the next line-start rule header.
 - Section scanning has lexical awareness for `%{...%}`, but declaration parsing and prologue folding

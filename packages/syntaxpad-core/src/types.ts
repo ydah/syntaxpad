@@ -44,6 +44,7 @@ export interface SymbolItem {
 
 export interface LiteralItem {
   readonly kind: "literal";
+  readonly namedReference?: NamedReference;
   readonly range: SourceRange;
   readonly text: string;
 }
@@ -66,11 +67,13 @@ export interface ActionItem {
   readonly codeRange: SourceRange;
   readonly isMidrule: boolean;
   readonly kind: "action";
+  readonly namedReference?: NamedReference;
   readonly range: SourceRange;
   readonly references: readonly ActionReference[];
   readonly safe: boolean;
   readonly semanticPosition: number;
   readonly terminated: boolean;
+  readonly typeTag?: string;
 }
 
 export interface PrecedenceItem {
@@ -119,6 +122,7 @@ export interface RuleNode {
   readonly parameterized: boolean;
   readonly range: SourceRange;
   readonly semicolonRange?: SourceRange;
+  readonly typeTag?: string;
 }
 
 export interface DeclaredSymbol {

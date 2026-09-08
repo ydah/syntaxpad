@@ -78,6 +78,59 @@ describe("parseGrammar", () => {
     });
   });
 
+  it("parses typed Lrama rules before the rules-section delimiter", () => {
+    const source = `%{
+const char *not_a_rule = "%rule hidden(value): value;";
+%}
+%token ITEM
+%rule wrapped(value) <node>
+  : value { $$ = $value; }
+  ;
+%%
+start: wrapped(ITEM);
+%%`;
+    const document = parseGrammar(source, { dialect: "lrama" });
+    const model = analyzeGrammar(document);
+
+    expect(document.rules.map((rule) => rule.name)).toEqual(["start", "wrapped"]);
+    expect(document.rules[1]).toMatchObject({
+      parameterNames: [{ name: "value" }],
+      typeTag: "node",
+    });
+    expect(model.startSymbol).toBe("start");
+    expect(model.diagnostics.filter((diagnostic) => diagnostic.severity === "error")).toEqual([]);
+  });
+
+  it("recognizes aliases and type tags on literals and midrule actions", () => {
+    const source = `%token ITEM
+%%
+start: '!'[not] { $$ = $not; }[saved]<node> item { $$ = $saved; };
+item: ITEM;
+%%`;
+    const document = parseGrammar(source, { dialect: "lrama" });
+    const model = analyzeGrammar(document);
+
+    expect(document.rules[0]?.alternatives[0]?.items.map((item) => item.kind)).toEqual([
+      "literal",
+      "action",
+      "symbol",
+      "action",
+    ]);
+    expect(model.diagnostics.filter((diagnostic) => diagnostic.severity === "error")).toEqual([]);
+  });
+
+  it("allows a parameterized rule and its concrete instantiation to share a name", () => {
+    const source = `%token ITEM
+%rule list(value) <node>: value | list(value) value { $$ = $list; };
+%%
+start: list;
+list: list(ITEM);
+%%`;
+    const model = analyzeGrammar(parseGrammar(source, { dialect: "lrama" }));
+
+    expect(model.diagnostics.filter((diagnostic) => diagnostic.severity === "error")).toEqual([]);
+  });
+
   it("round-trips the ambiguous conflict-analysis fixture", async () => {
     const source = await fixture("small/ambiguous.y");
 
@@ -147,7 +200,7 @@ start:
     const source = `%type <node> start
 %%
 start: other ;
-other: %empty ;
+other: %empty { $$ = 0; };
 %%`;
 
     expect(
