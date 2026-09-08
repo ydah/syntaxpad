@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="SyntaxPad visualizes and refactors Bison, Yacc, and Lrama grammars inside VS Code."
+    />
+    <meta name="theme-color" content="#EEF4F0" />
+    <meta property="og:title" content="SyntaxPad — See the grammar before you change it" />
+    <meta
+      property="og:description"
+      content="Lossless visual grammar tooling for Bison, Yacc, and Lrama."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ydah.github.io/syntaxpad/" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <title>SyntaxPad — Visual grammar tooling</title>
+  </head>
+  <body class="min-w-80 overflow-x-clip font-sans antialiased">
+    <header class="border-line border-b">
+      <nav
+        class="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12"
+        aria-label="Main navigation"
+      >
+        <a class="flex items-center gap-3 font-semibold" href="#top" aria-label="SyntaxPad home">
+          <svg class="size-8" viewBox="0 0 32 32" aria-hidden="true">
+            <rect class="fill-ink" width="32" height="32" rx="6" />
+            <path
+              d="M6 16h5m10 0h5M11 10v12m10-12v12"
+              fill="none"
+              stroke="#eef4f0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M11 10h10M11 22h10"
+              fill="none"
+              stroke="#dd5433"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <span>SyntaxPad</span>
+        </a>
+        <a
+          class="decoration-signal underline decoration-2 underline-offset-4 hover:text-rail"
+          href="https://github.com/ydah/syntaxpad"
+        >
+          View on GitHub
+        </a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section
+        class="mx-auto grid max-w-7xl gap-14 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-12 lg:py-28"
+      >
+        <div class="min-w-0">
+          <p class="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-rail">
+            <span>Bison</span><span>Yacc</span><span>Lrama</span>
+          </p>
+          <h1
+            class="max-w-2xl text-balance font-display text-6xl leading-[0.93] font-semibold sm:text-7xl lg:text-8xl"
+          >
+            See the grammar before you change it.
+          </h1>
+          <p class="mt-8 max-w-xl text-pretty text-lg leading-8 text-ink/75 sm:text-xl">
+            SyntaxPad turns parser grammars into navigable diagrams inside VS Code, then lets you
+            refactor the source without losing its shape.
+          </p>
+          <div class="mt-10 flex flex-wrap items-center gap-5">
+            <a
+              class="bg-ink inline-flex min-h-12 items-center rounded-md px-6 py-3 font-medium text-white hover:bg-rail focus-visible:outline-signal focus-visible:outline-2 focus-visible:outline-offset-4"
+              href="https://github.com/ydah/syntaxpad"
+            >
+              Explore the source
+            </a>
+            <span class="text-sm text-ink/60">MIT licensed</span>
+          </div>
+        </div>
+
+        <div
+          class="border-ink bg-ink w-full min-w-0 max-w-full overflow-hidden rounded-xl border shadow-xl"
+          aria-label="SyntaxPad grammar view example"
+        >
+          <div
+            class="border-ink flex items-center justify-between border-b bg-white px-4 py-3 text-sm"
+          >
+            <span class="font-medium">calculator.y</span>
+            <span class="text-rail">Grammar view</span>
+          </div>
+          <div class="grid min-w-0 md:grid-cols-[0.78fr_1.22fr]">
+            <div
+              class="border-ink/30 bg-ink border-b px-5 py-6 text-sm leading-7 text-white/80 md:border-r md:border-b-0"
+            >
+              <p class="mb-5 text-white/45">grammar.y</p>
+              <pre
+                class="overflow-x-auto font-mono"
+              ><code><span class="text-[#E8B85D]">%token</span> NUMBER
+<span class="text-[#E8B85D]">%left</span> <span class="text-[#E8B85D]">'+'</span> <span class="text-[#E8B85D]">'-'</span>
+<span class="text-white/35">%%</span>
+<span class="text-[#7CC6A9]">expr</span>:
+    NUMBER
+  | expr <span class="text-[#E8B85D]">'+'</span> expr
+  | <span class="text-[#E8B85D]">'('</span> expr <span class="text-[#E8B85D]">')'</span>
+  ;</code></pre>
+            </div>
+            <div class="bg-white px-5 py-6 sm:px-7">
+              <div class="flex items-baseline justify-between gap-4">
+                <h2 class="text-balance font-display text-3xl font-semibold">expr</h2>
+                <span class="rounded-full bg-signal/15 px-3 py-1 text-xs font-medium text-signal"
+                  >1 conflict</span
+                >
+              </div>
+              <svg
+                class="mt-8 block w-full max-w-full text-ink"
+                viewBox="0 0 520 252"
+                role="img"
+                aria-label="Railroad diagram for the expr grammar rule"
+              >
+                <path
+                  class="rail-track"
+                  d="M8 34h72M194 34h318M8 126h62q18 0 18-18V84q0-18 18-18h8M278 66h124q18 0 18 18v24q0 18 18 18h74M8 218h62q18 0 18-18v-24q0-18 18-18h8M406 158h14v42q0 18 18 18h74"
+                />
+                <rect class="rail-node" x="80" y="14" width="114" height="40" rx="6" />
+                <text x="137" y="39" text-anchor="middle" class="fill-ink font-mono text-sm">
+                  NUMBER
+                </text>
+                <rect class="rail-node" x="114" y="46" width="92" height="40" rx="6" />
+                <text x="160" y="71" text-anchor="middle" class="fill-ink font-mono text-sm">
+                  expr
+                </text>
+                <rect class="rail-node rail-token" x="224" y="46" width="54" height="40" rx="20" />
+                <text x="251" y="71" text-anchor="middle" class="fill-white font-mono text-sm">
+                  +
+                </text>
+                <rect class="rail-node" x="296" y="46" width="106" height="40" rx="6" />
+                <text x="349" y="71" text-anchor="middle" class="fill-ink font-mono text-sm">
+                  expr
+                </text>
+                <rect class="rail-node rail-token" x="114" y="138" width="54" height="40" rx="20" />
+                <text x="141" y="163" text-anchor="middle" class="fill-white font-mono text-sm">
+                  (
+                </text>
+                <rect class="rail-node" x="186" y="138" width="106" height="40" rx="6" />
+                <text x="239" y="163" text-anchor="middle" class="fill-ink font-mono text-sm">
+                  expr
+                </text>
+                <rect class="rail-node rail-token" x="310" y="138" width="54" height="40" rx="20" />
+                <text x="337" y="163" text-anchor="middle" class="fill-white font-mono text-sm">
+                  )
+                </text>
+                <circle cx="8" cy="34" r="4" class="fill-signal" />
+                <circle cx="512" cy="34" r="4" class="fill-signal" />
+                <circle cx="8" cy="126" r="4" class="fill-signal" />
+                <circle cx="512" cy="126" r="4" class="fill-signal" />
+                <circle cx="8" cy="218" r="4" class="fill-signal" />
+                <circle cx="512" cy="218" r="4" class="fill-signal" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-line border-y bg-white">
+        <div class="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div class="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+            <h2
+              class="max-w-lg text-balance font-display text-5xl leading-tight font-semibold sm:text-6xl"
+            >
+              Your <code class="text-rail font-mono text-[0.78em] font-medium">.y</code> file stays
+              the source of truth.
+            </h2>
+            <div class="grid border-t border-ink/20 sm:grid-cols-3">
+              <article class="border-ink/20 py-7 sm:border-r sm:pr-7">
+                <h3 class="text-xl font-semibold">Inspect structure</h3>
+                <p class="mt-4 text-pretty leading-7 text-ink/70">
+                  Railroad and dependency views are derived from the grammar you already maintain.
+                </p>
+              </article>
+              <article class="border-ink/20 border-t py-7 sm:border-t-0 sm:border-r sm:px-7">
+                <h3 class="text-xl font-semibold">Follow meaning</h3>
+                <p class="mt-4 text-pretty leading-7 text-ink/70">
+                  Jump through definitions, references, symbols, diagnostics, and parser conflicts.
+                </p>
+              </article>
+              <article class="border-ink/20 border-t py-7 sm:border-t-0 sm:pl-7">
+                <h3 class="text-xl font-semibold">Change safely</h3>
+                <p class="mt-4 text-pretty leading-7 text-ink/70">
+                  Extract, inline, wrap, add, and reorder with source-preserving patches and
+                  one-step Undo.
+                </p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+        <div class="grid items-center gap-12 lg:grid-cols-2">
+          <div class="border-signal bg-signal/10 border-l-4 p-6 sm:p-8">
+            <p class="font-mono text-sm text-signal">shift/reduce conflict</p>
+            <p
+              class="mt-5 font-display text-3xl leading-snug font-semibold text-balance sm:text-4xl"
+            >
+              See the counterexample. Land on the rule. Fix the grammar, not the symptom.
+            </p>
+          </div>
+          <div>
+            <h2 class="text-balance font-display text-5xl leading-tight font-semibold sm:text-6xl">
+              Built for real grammar files.
+            </h2>
+            <p class="mt-6 max-w-xl text-pretty text-lg leading-8 text-ink/70">
+              Comments, whitespace, embedded code, unknown directives, and line endings survive
+              inspection. Error-tolerant parsing keeps the view useful while the file is still being
+              written.
+            </p>
+            <p class="mt-6 max-w-xl text-pretty leading-7 text-ink/70">
+              External Bison and Lrama analysis is optional and disabled in untrusted workspaces.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-rail text-white">
+        <div
+          class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-16 sm:px-8 md:flex-row md:items-center lg:px-12"
+        >
+          <h2
+            class="max-w-3xl text-balance font-display text-5xl leading-tight font-semibold sm:text-6xl"
+          >
+            Read grammars with more than your parser.
+          </h2>
+          <a
+            class="inline-flex min-h-12 shrink-0 items-center rounded-md bg-white px-6 py-3 font-medium text-rail hover:bg-paper focus-visible:outline-white focus-visible:outline-2 focus-visible:outline-offset-4"
+            href="https://github.com/ydah/syntaxpad"
+            >Open SyntaxPad on GitHub</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer
+      class="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-ink/60 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12"
+    >
+      <p>SyntaxPad is open source under the MIT License.</p>
+      <a
+        class="underline decoration-1 underline-offset-4 hover:text-rail"
+        href="https://github.com/ydah/syntaxpad/blob/main/docs/README.md"
+        >Architecture and quality records</a
+      >
+    </footer>
+  </body>
+</html>

@@ -5,6 +5,7 @@
 /coverage/
 /dist/
 /out/
+/site/styles.css
 /fixtures/external/
 /packages/*/dist/
 /*.vsix
