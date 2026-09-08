@@ -196,3 +196,24 @@ transition before release.
 
 Append one row for each completed scenario review. If the same scenario fails three consecutive
 reviews, create an ADR reconsidering the interaction approach before continuing.
+
+## 2026-09-08 — S5 search-to-neighborhood correction
+
+- **Date:** 2026-09-08
+- **Commit:** `b35bbc8`
+- **Target:** make the transition from a token search to a distance-bounded rule neighborhood
+  explicit
+- **Result:** Technical checks passed; S5 requires a user rerun with the updated extension
+
+| Observation                       | Result                                                             |
+| --------------------------------- | ------------------------------------------------------------------ |
+| Active search                     | Distance is disabled with guidance to select a rule                |
+| Referencing-rule selection        | Clears the search and enables Neighborhood distance                |
+| CRuby `cname`, Distance 1 and 2   | Graph grows from 3 nodes to 7 nodes                                |
+| Dependency audit                  | 0 known vulnerabilities                                            |
+| Automated suite                   | 11 test files; 85 tests                                            |
+| Generated grammar parse and model | 10,505 lines; median 17.26 ms; p95 31.37 ms                        |
+| CRuby `parse.y` parse and model   | 16,091 lines; median 9.78 ms; p95 16.84 ms                         |
+| VSIX                              | 12 files; 459.87 KB                                                |
+| VSIX SHA-256                      | `e509119af42f41ae36a0ba11bd185fbd43beef64e60548682755b3091d0e5135` |
+| Isolated VS Code installation     | Succeeded as `ydah.syntaxpad@0.1.0`                                |
