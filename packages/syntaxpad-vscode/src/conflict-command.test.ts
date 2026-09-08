@@ -32,6 +32,7 @@ describe("conflict command target", () => {
     const request = { id: 2, version: 5 };
 
     expect(isCurrentConflictRequest(request, request)).toBe(true);
+    expect(isCurrentConflictRequest(request, { id: undefined, version: 5 })).toBe(false);
     expect(isCurrentConflictRequest(request, { id: 2, version: 6 })).toBe(false);
     expect(isCurrentConflictRequest(request, { id: 3, version: 5 })).toBe(false);
   });

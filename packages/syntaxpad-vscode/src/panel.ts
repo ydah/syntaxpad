@@ -134,6 +134,14 @@ export class SyntaxPadPanel implements vscode.Disposable {
     await SyntaxPadPanel.current?.render();
   }
 
+  public static clearConflicts(uri: vscode.Uri): void {
+    if (SyntaxPadPanel.latestConflicts?.uri !== uri.toString()) {
+      return;
+    }
+    SyntaxPadPanel.latestConflicts = undefined;
+    void SyntaxPadPanel.current?.render();
+  }
+
   public static setMetricsChannel(channel: vscode.OutputChannel): void {
     SyntaxPadPanel.metrics = channel;
   }

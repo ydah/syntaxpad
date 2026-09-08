@@ -162,14 +162,20 @@ export const registerConflictAnalysis = (context: vscode.ExtensionContext): void
   const diagnostics = vscode.languages.createDiagnosticCollection("syntaxpad-conflicts");
   const activeRequests = new Map<string, number>();
   let nextRequestId = 0;
+  const invalidate = (document: vscode.TextDocument): void => {
+    if (!isGrammarDocument(document)) {
+      return;
+    }
+    diagnostics.delete(document.uri);
+    activeRequests.delete(document.uri.toString());
+    SyntaxPadPanel.clearConflicts(document.uri);
+  };
   context.subscriptions.push(
     diagnostics,
     vscode.workspace.onDidChangeTextDocument((event) => {
-      if (isGrammarDocument(event.document)) {
-        diagnostics.delete(event.document.uri);
-        activeRequests.delete(event.document.uri.toString());
-      }
+      invalidate(event.document);
     }),
+    vscode.workspace.onDidCloseTextDocument(invalidate),
     vscode.commands.registerCommand("syntaxpad.runConflicts", async (input: unknown) => {
       const target = parseConflictCommandTarget(input);
       if (target.kind === "invalid") {
