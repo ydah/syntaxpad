@@ -109,6 +109,27 @@ The extension manifest names the `syntaxpad` Marketplace publisher, while the lo
 publishing credential belongs to `ydah`. Resolve the permanent extension identifier before the first
 Marketplace publication. S1–S5 remain required before release acceptance.
 
+## 2026-09-08 — v0.1.0 publisher-ready candidate
+
+- **Date:** 2026-09-08
+- **Commit:** `09306a3`
+- **Target:** resolve the first-release Marketplace identity and repeat the technical package checks
+- **Result:** Technical checks passed; human UX acceptance remains pending
+
+| Observation                       | Result                                                                |
+| --------------------------------- | --------------------------------------------------------------------- |
+| Marketplace identity              | `ydah.syntaxpad` is unused; the `ydah` publishing credential verified |
+| Dependency audit                  | 0 known vulnerabilities                                               |
+| Automated suite                   | 11 test files; 83 tests                                               |
+| Generated grammar parse and model | 10,505 lines; median 15.27 ms; p95 28.93 ms                           |
+| CRuby `parse.y` parse and model   | 16,091 lines; median 9.20 ms; p95 16.23 ms                            |
+| VSIX                              | 12 files; 459.74 KB                                                   |
+| VSIX SHA-256                      | `2779b81a6561c9388818ed9dc5dec9da6602ba41eebe54c16dbf929b143f5a15`    |
+| Isolated VS Code installation     | Succeeded as `ydah.syntaxpad@0.1.0`                                   |
+
+S1–S5 remain required before release acceptance. Marketplace publication and a final GitHub release
+must not precede those human gates.
+
 ## Human UX review history
 
 | Date          | Commit         | Target                                                          | Reviewer | Result  | Notes                     |
