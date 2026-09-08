@@ -1,5 +1,7 @@
+import { analyzeGrammar } from "./model.js";
 import { parseGrammar } from "./parser.js";
 import type {
+  GrammarDiagnostic,
   GrammarDocument,
   TextPatch,
   TransformError,
@@ -67,7 +69,35 @@ export const applyTextPatches = (source: string, patches: readonly TextPatch[]):
 
 const transformFailure = (error: TransformError): TransformResult => ({ error, ok: false });
 
+const hasNewEntries = (previous: readonly string[], next: readonly string[]): boolean => {
+  const remaining = new Map<string, number>();
+  previous.forEach((entry) => remaining.set(entry, (remaining.get(entry) ?? 0) + 1));
+  return next.some((entry) => {
+    const count = remaining.get(entry) ?? 0;
+    if (count === 0) {
+      return true;
+    }
+    remaining.set(entry, count - 1);
+    return false;
+  });
+};
+
+const errorKeys = (diagnostics: readonly GrammarDiagnostic[]): readonly string[] =>
+  diagnostics
+    .filter((diagnostic) => diagnostic.severity === "error")
+    .map((diagnostic) => `${diagnostic.code}\u0000${diagnostic.message}`);
+
+const unknownFragments = (document: GrammarDocument): readonly string[] => [
+  ...document.unknown.map((node) => document.source.slice(node.range.start, node.range.end).trim()),
+  ...document.rules.flatMap((rule) =>
+    rule.alternatives.flatMap((alternative) =>
+      alternative.items.flatMap((item) => (item.kind === "unknown" ? [item.text.trim()] : [])),
+    ),
+  ),
+];
+
 export const finalizeTransform = (options: {
+  readonly allowStartSymbolChange?: boolean;
   readonly conflictCheckRecommended?: boolean;
   readonly document: GrammarDocument;
   readonly patches: readonly TextPatch[];
@@ -85,16 +115,27 @@ export const finalizeTransform = (options: {
   }
 
   const updated = parseGrammar(preview, { dialect: options.document.dialect });
-  const previousErrorCount = options.document.diagnostics.filter(
-    (diagnostic) => diagnostic.severity === "error",
-  ).length;
-  const nextErrorCount = updated.diagnostics.filter(
-    (diagnostic) => diagnostic.severity === "error",
-  ).length;
-  if (nextErrorCount > previousErrorCount) {
+  const previousModel = analyzeGrammar(options.document);
+  const nextModel = analyzeGrammar(updated);
+  if (hasNewEntries(errorKeys(previousModel.diagnostics), errorKeys(nextModel.diagnostics))) {
     return transformFailure({
-      code: "postcondition-parse-error",
-      message: "The transformation would introduce a new grammar parse error.",
+      code: "postcondition-analysis-error",
+      message: "The transformation would introduce a new grammar error.",
+    });
+  }
+  if (hasNewEntries(unknownFragments(options.document), unknownFragments(updated))) {
+    return transformFailure({
+      code: "postcondition-unknown-region",
+      message: "The transformation would introduce an unrecognized grammar region.",
+    });
+  }
+  if (
+    options.allowStartSymbolChange !== true &&
+    previousModel.startSymbol !== nextModel.startSymbol
+  ) {
+    return transformFailure({
+      code: "postcondition-start-symbol-changed",
+      message: "The transformation would change the grammar start symbol.",
     });
   }
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { applyTextPatches, InvalidPatchError } from "./patches.js";
+import { parseGrammar } from "./parser.js";
+import { applyTextPatches, finalizeTransform, InvalidPatchError } from "./patches.js";
 
 describe("applyTextPatches", () => {
   it("applies replacements from the end without shifting earlier ranges", () => {
@@ -28,5 +29,47 @@ describe("applyTextPatches", () => {
         { range: { end: 4, start: 2 }, text: "" },
       ]),
     ).toThrow(InvalidPatchError);
+  });
+
+  it("rejects new semantic errors even when the error count is unchanged", () => {
+    const source = "%%\nstart: missing;\n%%";
+    const start = source.indexOf("missing");
+    const result = finalizeTransform({
+      document: parseGrammar(source),
+      patches: [{ range: { end: start + 7, start }, text: "different" }],
+    });
+
+    expect(result).toMatchObject({
+      error: { code: "postcondition-analysis-error" },
+      ok: false,
+    });
+  });
+
+  it("rejects new unknown regions and implicit start symbol changes", () => {
+    const source = "%token A\n%%\nstart: A;\nother: A;\n%%";
+    const document = parseGrammar(source);
+    const secondSection = source.lastIndexOf("%%");
+    const unknown = finalizeTransform({
+      document,
+      patches: [{ range: { end: secondSection, start: secondSection }, text: "?" }],
+    });
+    const startRule = document.rules[0];
+    expect(startRule).toBeDefined();
+    if (startRule === undefined) {
+      return;
+    }
+    const changedStart = finalizeTransform({
+      document,
+      patches: [{ range: startRule.range, text: "" }],
+    });
+
+    expect(unknown).toMatchObject({
+      error: { code: "postcondition-unknown-region" },
+      ok: false,
+    });
+    expect(changedStart).toMatchObject({
+      error: { code: "postcondition-start-symbol-changed" },
+      ok: false,
+    });
   });
 });

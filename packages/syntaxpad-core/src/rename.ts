@@ -94,6 +94,9 @@ export const renameSymbol = (
   }
 
   return finalizeTransform({
+    allowStartSymbolChange:
+      (document.declarations.find((declaration) => declaration.directive === "%start")?.symbols[0]
+        ?.name ?? document.rules[0]?.name) === oldName,
     document,
     patches: [...patches.values()],
     verify: (updated) =>
